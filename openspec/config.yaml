@@ -1,0 +1,27 @@
+project: genchord
+artifact_store:
+  mode: hybrid
+  local: openspec
+  memory: engram
+
+context:
+  summary: "Herramienta web de estudio para explorar acompanamientos con acordes visuales y auditivos."
+  product_doc: docs/product.md
+  technical_direction_doc: docs/technical-direction.md
+  ai_collaboration_doc: docs/ai-collaboration.md
+
+architecture:
+  boundaries:
+    music_core: "Notas, escalas, grados, acordes, inversiones y voicings conceptuales; sin React, DOM ni audio."
+    audio: "Convierte eventos musicales ya resueltos en sonido reproducible; sin reglas teoricas."
+    ui: "Estado de estudio, teclado visual, controles y feedback; sin detalles internos de audio o teoria."
+
+testing:
+  strict_tdd: false
+  app_code: false
+  package_json: false
+  test_runner: none
+  test_command: none
+  lint_command: none
+  typecheck_command: none
+  reason: "No codebase/test runner exists yet; enable strict TDD after scaffolding."
