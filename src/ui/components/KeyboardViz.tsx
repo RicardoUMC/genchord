@@ -1,4 +1,4 @@
-import type { ChordResult, NoteName } from '../../music-core'
+import type { NoteName, StudyResult, VoicedNote } from '../../music-core'
 
 interface PianoKey {
   note: NoteName
@@ -7,17 +7,14 @@ interface PianoKey {
 }
 
 const keyboardNotes: PianoKey[] = [
-  ...(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const).map((note) => ({
-    note,
-    octave: 3,
-    accidental: note.includes('#'),
-  })),
-  ...(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const).map((note) => ({
-    note,
-    octave: 4,
-    accidental: note.includes('#'),
-  })),
-  { note: 'C', octave: 5, accidental: false },
+  ...([3, 4, 5] as const).flatMap((octave) =>
+    (['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const).map((note) => ({
+      note,
+      octave,
+      accidental: note.includes('#'),
+    })),
+  ),
+  { note: 'C', octave: 6, accidental: false },
 ]
 
 function enharmonicSet(notes: NoteName[]) {
@@ -32,30 +29,67 @@ function enharmonicSet(notes: NoteName[]) {
   return new Set(notes.map((note) => map[note] ?? note))
 }
 
-export function KeyboardViz({ chord }: { chord: ChordResult | null }) {
-  const activeNotes = enharmonicSet(chord?.notes ?? [])
+function voicedKeyId({ note, octave }: VoicedNote) {
+  const [normalizedNote] = enharmonicSet([note])
+  return `${normalizedNote}${octave}`
+}
+
+interface KeyboardVizProps {
+  result: StudyResult | null
+  guidance: string | null
+  onStartKey: (key: VoicedNote) => void
+  onStopKey: () => void
+}
+
+export function KeyboardViz({ result, guidance, onStartKey, onStopKey }: KeyboardVizProps) {
+  const activeVoicing = new Set((result?.voicing ?? []).map(voicedKeyId))
+  const generatorKey = result ? voicedKeyId(result.generatorNote) : null
 
   return (
-    <section className="panel keyboard-panel" aria-labelledby="keyboard-heading">
+    <section className="keyboard-panel" aria-labelledby="keyboard-heading">
       <div>
         <p className="eyebrow">Keyboard</p>
-        <h2 id="keyboard-heading">Chord tones C3-C5</h2>
+        <h2 id="keyboard-heading">Exact voicing C3-C6</h2>
       </div>
-      <div className="keyboard" role="img" aria-label="Piano keyboard with active chord tones highlighted">
+      <div className="keyboard" role="group" aria-label="Playable piano keyboard from C3 to C6">
         {keyboardNotes.map((key) => {
-          const active = activeNotes.has(key.note)
+          const keyId = `${key.note}${key.octave}`
+          const active = activeVoicing.has(keyId)
+          const generator = generatorKey === keyId
           return (
-            <span
-              key={`${key.note}${key.octave}`}
-              className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${active ? 'is-active' : ''}`}
-              data-testid={active ? 'active-piano-key' : undefined}
-              aria-label={`${key.note}${key.octave}${active ? ' active' : ''}`}
+            <button
+              key={keyId}
+              type="button"
+              className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
+              data-testid={generator ? 'generator-piano-key' : active ? 'active-piano-key' : undefined}
+              onPointerDown={() => onStartKey({ note: key.note, octave: key.octave })}
+              onPointerUp={onStopKey}
+              onPointerLeave={onStopKey}
+              onPointerCancel={onStopKey}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                  return
+                }
+
+                event.preventDefault()
+                if (!event.repeat) {
+                  onStartKey({ note: key.note, octave: key.octave })
+                }
+              }}
+              onKeyUp={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onStopKey()
+                }
+              }}
+              aria-label={`${key.note}${key.octave}${generator ? ' generator active' : active ? ' active' : ''}`}
             >
               {!key.accidental && `${key.note}${key.octave}`}
-            </span>
+            </button>
           )
         })}
       </div>
+      {guidance && <p className="helper keyboard-guidance" role="status">{guidance}</p>}
     </section>
   )
 }

@@ -1,27 +1,31 @@
 import { useReducer } from 'react'
-import type { ChordResult, DegreeNum, Key, NoteName, Tonality } from '../music-core'
+import type { ChordResult, DegreeNum, Key, NoteName, StudyResult, Tonality } from '../music-core'
 
 interface StudyState {
   root: NoteName | null
   tonality: Tonality | null
   activeDegree: DegreeNum | null
-  activeChord: ChordResult | null
+  activeStudy: StudyResult | null
+  guidance: string | null
 }
 
 type StudyAction =
   | { type: 'setRoot'; root: NoteName }
   | { type: 'setTonality'; tonality: Tonality }
   | { type: 'triggerChord'; degree: DegreeNum; chord: ChordResult }
+  | { type: 'triggerKeyboardTone'; tone: StudyResult }
+  | { type: 'setGuidance'; guidance: string }
 
 const initialState: StudyState = {
   root: null,
   tonality: null,
   activeDegree: null,
-  activeChord: null,
+  activeStudy: null,
+  guidance: 'Choose a context, then trigger a degree or play the keyboard.',
 }
 
 function clearChord(state: StudyState): StudyState {
-  return { ...state, activeDegree: null, activeChord: null }
+  return { ...state, activeDegree: null, activeStudy: null }
 }
 
 function reducer(state: StudyState, action: StudyAction): StudyState {
@@ -31,7 +35,11 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
     case 'setTonality':
       return clearChord({ ...state, tonality: action.tonality })
     case 'triggerChord':
-      return { ...state, activeDegree: action.degree, activeChord: action.chord }
+      return { ...state, activeDegree: action.degree, activeStudy: action.chord, guidance: null }
+    case 'triggerKeyboardTone':
+      return { ...state, activeDegree: null, activeStudy: action.tone, guidance: null }
+    case 'setGuidance':
+      return { ...state, guidance: action.guidance }
   }
 }
 

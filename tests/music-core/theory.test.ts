@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { buildScale, noteNames, resolveDiatonicTriad } from '../../src/music-core'
+import {
+  buildScale,
+  constrainTriadStartToVisibleKeyboard,
+  findDiatonicDegreeForNote,
+  noteNames,
+  resolveDiatonicTriad,
+  resolveKeyboardTone,
+  resolveVisibleKeyboardTriad,
+  voicingNames,
+} from '../../src/music-core'
 import type { ChordQuality, DegreeNum, Key, NoteName, RomanNumeral } from '../../src/music-core'
 
 interface ExpectedTriad {
@@ -105,5 +114,43 @@ describe('music-core theory', () => {
   it('formats chord note names for display consumers', () => {
     const chord = resolveDiatonicTriad({ root: 'C', tonality: 'major' }, 5)
     expect(noteNames(chord)).toBe('G · B · D')
+  })
+
+  it('voices degree-triggered chords upward from C4 register by default', () => {
+    const chord = resolveDiatonicTriad({ root: 'C', tonality: 'major' }, 5)
+
+    expect(voicingNames(chord)).toBe('G4 · B4 · D5')
+  })
+
+  it('finds a clicked keyboard note degree in the current key by pitch class', () => {
+    expect(findDiatonicDegreeForNote({ root: 'C', tonality: 'major' }, 'D')).toBe(2)
+    expect(findDiatonicDegreeForNote({ root: 'C', tonality: 'major' }, 'C#')).toBeNull()
+  })
+
+  it('constrains high keyboard-triggered triads to the visible C3-C6 range', () => {
+    expect(constrainTriadStartToVisibleKeyboard(['B', 'D', 'F'], 5)).toBe(4)
+    expect(constrainTriadStartToVisibleKeyboard(['C', 'E', 'G'], 6)).toBe(5)
+
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', tonality: 'major' }, 7, 5)
+
+    expect(voicingNames(chord)).toBe('B4 · D5 · F5')
+  })
+
+  it('keeps low and middle keyboard-triggered triads at the requested visible register', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', tonality: 'major' }, 2, 4)
+
+    expect(voicingNames(chord)).toBe('D4 · F4 · A4')
+  })
+
+  it('resolves a visual keyboard tone as a single playable note', () => {
+    const tone = resolveKeyboardTone({ note: 'C#', octave: 4 })
+
+    expect(tone).toEqual({
+      kind: 'keyboard-tone',
+      name: 'C#4',
+      voicing: [{ note: 'C#', octave: 4 }],
+      generatorNote: { note: 'C#', octave: 4 },
+    })
+    expect(voicingNames(tone)).toBe('C#4')
   })
 })

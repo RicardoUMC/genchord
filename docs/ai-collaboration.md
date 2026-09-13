@@ -23,6 +23,7 @@ La IA en GenChord debe cuidar el modelo musical y mantener separadas teoria, aud
 ## Criterios de calidad
 
 - La UI debe explicar que esta sonando, no solo reproducirlo.
+- El teclado debe sostener la jerarquia principal de la experiencia; contexto, grados y resultado actual deben sentirse como controles de estudio/sonido alrededor del instrumento.
 - El audio debe responder rapido y no bloquear el aprendizaje.
 - El dominio debe distinguir enharmonia, funcion armonica y sonido reproducible.
 - Los nombres visibles al usuario deben ser pedagogicos, no accidentes de una libreria.

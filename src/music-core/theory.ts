@@ -1,4 +1,4 @@
-import type { ChordQuality, ChordResult, DegreeNum, Key, NoteName, RomanNumeral, Tonality } from './types'
+import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, NoteName, RomanNumeral, Tonality, VoicedNote } from './types'
 
 const sharpChromatic: readonly NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const flatChromatic: readonly NoteName[] = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -14,6 +14,37 @@ const romansByQuality: Record<Tonality, readonly RomanNumeral[]> = {
 }
 const flatMajorRoots = new Set<NoteName>(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'])
 const flatMinorRoots = new Set<NoteName>(['D', 'G', 'C', 'F', 'Bb', 'Eb', 'Ab'])
+const pitchClassByNote: Record<NoteName, number> = {
+  C: 0,
+  'C#': 1,
+  Db: 1,
+  D: 2,
+  'D#': 3,
+  Eb: 3,
+  E: 4,
+  F: 5,
+  'F#': 6,
+  Gb: 6,
+  G: 7,
+  'G#': 8,
+  Ab: 8,
+  A: 9,
+  'A#': 10,
+  Bb: 10,
+  B: 11,
+}
+const visibleKeyboardRange = {
+  lowest: { note: 'C', octave: 3 } as VoicedNote,
+  highest: { note: 'C', octave: 6 } as VoicedNote,
+}
+
+function pitchClass(note: NoteName): number {
+  return pitchClassByNote[note]
+}
+
+function midiNumber({ note, octave }: VoicedNote): number {
+  return (octave + 1) * 12 + pitchClass(note)
+}
 
 export function buildScale(key: Key): NoteName[] {
   const useFlatSpelling = key.tonality === 'major' ? flatMajorRoots.has(key.root) : flatMinorRoots.has(key.root)
@@ -27,21 +58,86 @@ export function buildScale(key: Key): NoteName[] {
   return steps.map((step) => chromatic[(rootIndex + step) % chromatic.length])
 }
 
-export function resolveDiatonicTriad(key: Key, degree: DegreeNum): ChordResult {
+export function voiceChordFrom(chordNotes: NoteName[], startingOctave = 4): VoicedNote[] {
+  let octave = startingOctave
+  let previousPitch = -1
+
+  return chordNotes.map((note) => {
+    const notePitch = pitchClass(note)
+    if (previousPitch >= 0 && notePitch <= previousPitch) {
+      octave += 1
+    }
+
+    previousPitch = notePitch
+    return { note, octave }
+  })
+}
+
+export function constrainTriadStartToVisibleKeyboard(chordNotes: NoteName[], requestedOctave: number): number {
+  let octave = requestedOctave
+  let voicing = voiceChordFrom(chordNotes, octave)
+  const lowestVisible = midiNumber(visibleKeyboardRange.lowest)
+  const highestVisible = midiNumber(visibleKeyboardRange.highest)
+
+  while (voicing.some((note) => midiNumber(note) > highestVisible)) {
+    octave -= 1
+    voicing = voiceChordFrom(chordNotes, octave)
+  }
+
+  return voicing.some((note) => midiNumber(note) < lowestVisible) ? requestedOctave : octave
+}
+
+export function findDiatonicDegreeForNote(key: Key, note: NoteName): DegreeNum | null {
+  const scale = buildScale(key)
+  const notePitch = pitchClass(note)
+  const index = scale.findIndex((scaleNote) => pitchClass(scaleNote) === notePitch)
+
+  return index === -1 ? null : ((index + 1) as DegreeNum)
+}
+
+export function resolveDiatonicTriad(key: Key, degree: DegreeNum, startingOctave = 4): ChordResult {
   const scale = buildScale(key)
   const degreeIndex = degree - 1
   const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
   const quality = qualitiesByTonality[key.tonality][degreeIndex]
 
+  const voicing = voiceChordFrom(notes, startingOctave)
+
   return {
+    kind: 'chord',
     name: `${notes[0]} ${quality}`,
     degree: romansByQuality[key.tonality][degreeIndex],
     degreeNum: degree,
     quality,
     notes,
+    inversion: 'root position',
+    voicing,
+    generatorNote: voicing[0],
   }
+}
+
+export function resolveKeyboardTone(note: VoicedNote): KeyboardToneResult {
+  return {
+    kind: 'keyboard-tone',
+    name: `${note.note}${note.octave}`,
+    voicing: [note],
+    generatorNote: note,
+  }
+}
+
+export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, requestedOctave: number): ChordResult {
+  const scale = buildScale(key)
+  const degreeIndex = degree - 1
+  const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
+  const octave = constrainTriadStartToVisibleKeyboard(notes, requestedOctave)
+
+  return resolveDiatonicTriad(key, degree, octave)
 }
 
 export function noteNames(chord: ChordResult): string {
   return chord.notes.join(' · ')
+}
+
+export function voicingNames(result: { voicing: VoicedNote[] }): string {
+  return result.voicing.map(({ note, octave }) => `${note}${octave}`).join(' · ')
 }

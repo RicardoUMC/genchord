@@ -23,14 +23,31 @@ export interface Key {
 }
 
 export interface ChordResult {
+  kind: 'chord'
   name: string
   degree: RomanNumeral
   degreeNum: DegreeNum
   quality: ChordQuality
   notes: NoteName[]
+  inversion: 'root position'
+  voicing: VoicedNote[]
+  generatorNote: VoicedNote
+}
+
+export interface KeyboardToneResult {
+  kind: 'keyboard-tone'
+  name: string
+  voicing: VoicedNote[]
+  generatorNote: VoicedNote
+}
+
+export type StudyResult = ChordResult | KeyboardToneResult
+
+export interface VoicedNote {
+  note: NoteName
+  octave: number
 }
 
 export interface PlaybackEvent {
-  notes: NoteName[]
-  octave: 4
+  voicing: VoicedNote[]
 }
