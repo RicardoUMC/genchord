@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildScale,
-  constrainTriadStartToVisibleKeyboard,
+  clipVoicingToVisibleKeyboard,
   findDiatonicDegreeForNote,
   noteNames,
   resolveDiatonicTriad,
@@ -127,13 +127,22 @@ describe('music-core theory', () => {
     expect(findDiatonicDegreeForNote({ root: 'C', tonality: 'major' }, 'C#')).toBeNull()
   })
 
-  it('constrains high keyboard-triggered triads to the visible C3-C6 range', () => {
-    expect(constrainTriadStartToVisibleKeyboard(['B', 'D', 'F'], 5)).toBe(4)
-    expect(constrainTriadStartToVisibleKeyboard(['C', 'E', 'G'], 6)).toBe(5)
+  it('clips high keyboard-triggered triads to available notes without octave fallback', () => {
+    expect(clipVoicingToVisibleKeyboard([{ note: 'B', octave: 5 }, { note: 'D', octave: 6 }, { note: 'F', octave: 6 }])).toEqual([{ note: 'B', octave: 5 }])
+    expect(clipVoicingToVisibleKeyboard([{ note: 'C', octave: 6 }, { note: 'E', octave: 6 }, { note: 'G', octave: 6 }])).toEqual([{ note: 'C', octave: 6 }])
 
     const chord = resolveVisibleKeyboardTriad({ root: 'C', tonality: 'major' }, 7, 5)
 
-    expect(voicingNames(chord)).toBe('B4 · D5 · F5')
+    expect(voicingNames(chord)).toBe('B5')
+    expect(chord.generatorNote).toEqual({ note: 'B', octave: 5 })
+  })
+
+  it('keeps only the selected C6 generator note when the rest of the triad is above the keyboard', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', tonality: 'major' }, 1, 6)
+
+    expect(chord.notes).toEqual(['C', 'E', 'G'])
+    expect(voicingNames(chord)).toBe('C6')
+    expect(chord.generatorNote).toEqual({ note: 'C', octave: 6 })
   })
 
   it('keeps low and middle keyboard-triggered triads at the requested visible register', () => {

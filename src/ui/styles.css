@@ -115,6 +115,10 @@ select {
   margin-bottom: 0.65rem;
 }
 
+.keyboard-panel {
+  container-type: inline-size;
+}
+
 .keyboard-panel h2 {
   font-size: 1rem;
   line-height: 1.2;
@@ -314,13 +318,39 @@ select:focus-visible {
 }
 
 .keyboard {
+  --white-key-width: clamp(2rem, 3cqw, 2.6rem);
+  --black-key-width: calc(var(--white-key-width) * 0.52);
+  --key-height: calc(var(--white-key-width) * 3.46);
+  --black-key-height: calc(var(--key-height) * 0.62);
+
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 0;
   align-items: flex-start;
-  overflow-x: auto;
+  justify-content: center;
+  inline-size: 100%;
+  overflow: visible;
   padding: 0.9rem 0 0.75rem;
   border-top: 1px solid #3f3427;
   border-bottom: 1px solid #2d251c;
   background: #17130f;
+}
+
+.keyboard-register {
+  position: relative;
+  flex: 0 0 auto;
+  min-block-size: var(--key-height);
+}
+
+.white-key-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.black-key-layer {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 3;
 }
 
 .piano-key {
@@ -331,7 +361,7 @@ select:focus-visible {
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 0.55rem;
-  font-size: 0.75rem;
+  font-size: clamp(0.6rem, calc(var(--white-key-width) * 0.29), 0.75rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   cursor: pointer;
@@ -343,13 +373,17 @@ select:focus-visible {
 
 .white-key {
   z-index: 0;
-  width: 2.6rem;
-  height: 9rem;
-  margin-right: 0.15rem;
+  width: var(--white-key-width);
+  height: var(--key-height);
   border: 1px solid #32281d;
+  border-left-width: 0;
   border-radius: 0 0 4px 4px;
   color: #4a3928;
   background: linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
+}
+
+.white-key:first-child {
+  border-left-width: 1px;
 }
 
 .white-key:hover:not(:disabled) {
@@ -361,14 +395,40 @@ select:focus-visible {
 }
 
 .black-key {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--black-key-left);
   z-index: 3;
-  width: 1.65rem;
-  height: 5.8rem;
-  margin: 0 -0.9rem;
-  border: 1px solid #17100a;
+  width: var(--black-key-width);
+  height: var(--black-key-height);
+  border: 1px solid #120c07;
   border-radius: 0 0 3px 3px;
-  box-shadow: inset 0 -4px 0 rgb(255 255 255 / 0.04);
-  background: linear-gradient(#2f251b, #17110c);
+  box-shadow:
+    inset 1px 0 0 rgb(255 255 255 / 0.05),
+    inset -1px 0 0 rgb(0 0 0 / 0.22),
+    inset 0 -4px 0 rgb(255 255 255 / 0.04),
+    0 2px 3px rgb(0 0 0 / 0.3);
+  background: linear-gradient(#2a2017, #17110c 72%, #0f0b08);
+}
+
+@container (max-width: 36rem) {
+  .keyboard {
+    --white-key-width: clamp(1.85rem, 8cqw, 2rem);
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+  }
+
+  .piano-key {
+    padding-bottom: 0.35rem;
+    font-size: clamp(0.48rem, calc(var(--white-key-width) * 0.38), 0.6rem);
+    letter-spacing: -0.05em;
+  }
+
+  .source-marker {
+    top: 0.25rem;
+    width: 0.42rem;
+    height: 0.42rem;
+  }
 }
 
 .black-key:hover:not(:disabled) {
@@ -389,12 +449,24 @@ select:focus-visible {
 }
 
 .piano-key.is-generator {
-  border-color: #f0c86a;
+  border-color: #f2a16f;
+  color: #1b0f0a;
   box-shadow:
-    inset 0 4px 0 rgb(27 20 8 / 0.18),
-    inset 0 -5px 0 rgb(255 255 255 / 0.16),
-    0 0 0 2px rgb(255 215 108 / 0.62),
-    0 0 0 4px rgb(90 54 14 / 0.16);
+    inset 0 4px 0 rgb(27 15 10 / 0.2),
+    inset 0 -5px 0 rgb(255 244 225 / 0.16),
+    0 0 0 2px rgb(242 161 111 / 0.46);
+}
+
+.white-key.is-generator {
+  background:
+    linear-gradient(180deg, rgb(255 246 230 / 0.4), transparent 42%),
+    linear-gradient(#df9a63, #c9754a 72%, #a65138);
+}
+
+.white-key.is-generator:hover:not(:disabled) {
+  background:
+    linear-gradient(180deg, rgb(255 250 240 / 0.46), transparent 42%),
+    linear-gradient(#e4a56f, #cf7d50 72%, #a9563b);
 }
 
 .source-marker {
@@ -409,15 +481,15 @@ select:focus-visible {
 }
 
 .source-marker-on-white {
-  border: 1px solid rgb(49 31 12 / 0.74);
-  background: #7a430d;
-  box-shadow: 0 0 0 1px rgb(255 244 200 / 0.54);
+  border: 1px solid rgb(49 22 12 / 0.74);
+  background: #6f2f28;
+  box-shadow: 0 0 0 1px rgb(255 232 206 / 0.5);
 }
 
 .source-marker-on-black {
-  border: 1px solid rgb(255 247 214 / 0.86);
-  background: #fff1a8;
-  box-shadow: 0 0 0 1px rgb(23 16 10 / 0.52);
+  border: 1px solid rgb(255 239 224 / 0.86);
+  background: #ffd0b5;
+  box-shadow: 0 0 0 1px rgb(23 16 10 / 0.46);
 }
 
 .black-key.is-active {
@@ -426,10 +498,18 @@ select:focus-visible {
 
 .black-key.is-generator {
   z-index: 4;
+  background:
+    linear-gradient(180deg, rgb(255 217 190 / 0.2), transparent 44%),
+    linear-gradient(#8b4734, #5a281f 72%, #321713);
   box-shadow:
-    inset 0 -4px 0 rgb(27 20 8 / 0.2),
-    0 0 0 2px rgb(255 215 108 / 0.62),
-    0 0 0 4px rgb(90 54 14 / 0.16);
+    inset 0 -4px 0 rgb(27 15 10 / 0.22),
+    0 0 0 2px rgb(242 161 111 / 0.46);
+}
+
+.black-key.is-generator:hover:not(:disabled) {
+  background:
+    linear-gradient(180deg, rgb(255 225 202 / 0.24), transparent 44%),
+    linear-gradient(#96503b, #642e24 72%, #371a15);
 }
 
 .audio-error {

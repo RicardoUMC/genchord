@@ -6,6 +6,8 @@ interface ChordDisplayProps {
 }
 
 export function ChordDisplay({ activeKey, result }: ChordDisplayProps) {
+  const partialChord = result?.kind === 'chord' && result.voicing.length < result.notes.length
+
   return (
     <section className="panel chord-display" aria-live="polite" aria-labelledby="chord-display-heading">
       <p className="eyebrow">Now studying</p>
@@ -37,6 +39,7 @@ export function ChordDisplay({ activeKey, result }: ChordDisplayProps) {
                 <dd>{voicingNames(result)}</dd>
               </div>
             </dl>
+            {partialChord && <p className="helper">Partial voicing: only notes available on the visible keyboard are shown and played.</p>}
           </div>
         </div>
       ) : result?.kind === 'keyboard-tone' ? (

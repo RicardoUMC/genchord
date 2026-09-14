@@ -56,6 +56,22 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('C · E · G')).toBeInTheDocument()
   })
 
+  it('renders all visible keyboard keys in register groups', () => {
+    render(<App />)
+
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+
+    expect(within(keyboard).getAllByRole('button')).toHaveLength(37)
+    expect(within(keyboard).getAllByRole('button').filter((key) => key.classList.contains('white-key'))).toHaveLength(22)
+    expect(within(keyboard).getAllByRole('button').filter((key) => key.classList.contains('black-key'))).toHaveLength(15)
+    expect(within(keyboard).getByRole('group', { name: 'Register C3 to B3' })).toBeInTheDocument()
+    expect(within(keyboard).getByRole('group', { name: 'Register C4 to B4' })).toBeInTheDocument()
+    expect(within(keyboard).getByRole('group', { name: 'Register C5 to B5' })).toBeInTheDocument()
+    expect(within(keyboard).getByRole('group', { name: 'Register C6 to C6' })).toBeInTheDocument()
+    expect(within(keyboard).getByRole('button', { name: 'C3' })).toBeInTheDocument()
+    expect(within(keyboard).getByRole('button', { name: 'C6' })).toBeInTheDocument()
+  })
+
   it('maps physical keyboard input to the same degree trigger', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -143,7 +159,7 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('C#4')).toBeInTheDocument()
   })
 
-  it('keeps high visual-keyboard chords fully highlightable inside C3-C6', async () => {
+  it('plays only available high visual-keyboard chord tones without octave fallback', async () => {
     const user = userEvent.setup()
     render(<App />)
 
@@ -151,12 +167,28 @@ describe('GenChord study UI', () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: 'B5' }))
 
     expect(screen.getByText('B diminished')).toBeInTheDocument()
-    expect(screen.getByText('B4 · D5 · F5')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'B', octave: 4 }, { note: 'D', octave: 5 }, { note: 'F', octave: 5 }] })
-    expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
-    expect(screen.getByRole('button', { name: 'B4 generator note pressed' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'D5 chord tone pressed' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'F5 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getAllByText('B5').length).toBeGreaterThan(0)
+    expect(screen.getByText('Partial voicing: only notes available on the visible keyboard are shown and played.')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'B', octave: 5 }] })
+    expect(screen.queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'B5 generator note pressed' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'B4 generator note pressed' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'D5 chord tone pressed' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'F5 chord tone pressed' })).not.toBeInTheDocument()
+  })
+
+  it('plays and highlights C6 as a partial chord at the keyboard edge', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'C6' }))
+
+    expect(screen.getAllByText('C major').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('C6').length).toBeGreaterThan(0)
+    expect(screen.getByText('Partial voicing: only notes available on the visible keyboard are shown and played.')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C', octave: 6 }] })
+    expect(screen.getByRole('button', { name: 'C6 generator note pressed' })).toBeInTheDocument()
   })
 
   it('plays and highlights a single keyboard tone when no musical context exists', async () => {

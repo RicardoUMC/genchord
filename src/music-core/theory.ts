@@ -46,6 +46,12 @@ function midiNumber({ note, octave }: VoicedNote): number {
   return (octave + 1) * 12 + pitchClass(note)
 }
 
+function isInsideVisibleKeyboardRange(note: VoicedNote): boolean {
+  const noteMidi = midiNumber(note)
+
+  return noteMidi >= midiNumber(visibleKeyboardRange.lowest) && noteMidi <= midiNumber(visibleKeyboardRange.highest)
+}
+
 export function buildScale(key: Key): NoteName[] {
   const useFlatSpelling = key.tonality === 'major' ? flatMajorRoots.has(key.root) : flatMinorRoots.has(key.root)
   const chromatic = useFlatSpelling ? flatChromatic : sharpChromatic
@@ -73,18 +79,8 @@ export function voiceChordFrom(chordNotes: NoteName[], startingOctave = 4): Voic
   })
 }
 
-export function constrainTriadStartToVisibleKeyboard(chordNotes: NoteName[], requestedOctave: number): number {
-  let octave = requestedOctave
-  let voicing = voiceChordFrom(chordNotes, octave)
-  const lowestVisible = midiNumber(visibleKeyboardRange.lowest)
-  const highestVisible = midiNumber(visibleKeyboardRange.highest)
-
-  while (voicing.some((note) => midiNumber(note) > highestVisible)) {
-    octave -= 1
-    voicing = voiceChordFrom(chordNotes, octave)
-  }
-
-  return voicing.some((note) => midiNumber(note) < lowestVisible) ? requestedOctave : octave
+export function clipVoicingToVisibleKeyboard(voicing: VoicedNote[]): VoicedNote[] {
+  return voicing.filter(isInsideVisibleKeyboardRange)
 }
 
 export function findDiatonicDegreeForNote(key: Key, note: NoteName): DegreeNum | null {
@@ -129,9 +125,19 @@ export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, request
   const scale = buildScale(key)
   const degreeIndex = degree - 1
   const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
-  const octave = constrainTriadStartToVisibleKeyboard(notes, requestedOctave)
+  const voicing = clipVoicingToVisibleKeyboard(voiceChordFrom(notes, requestedOctave))
 
-  return resolveDiatonicTriad(key, degree, octave)
+  return {
+    kind: 'chord',
+    name: `${notes[0]} ${qualitiesByTonality[key.tonality][degreeIndex]}`,
+    degree: romansByQuality[key.tonality][degreeIndex],
+    degreeNum: degree,
+    quality: qualitiesByTonality[key.tonality][degreeIndex],
+    notes,
+    inversion: 'root position',
+    voicing,
+    generatorNote: voicing[0],
+  }
 }
 
 export function noteNames(chord: ChordResult): string {

@@ -22,7 +22,7 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 - Tocar una tecla fisica o grado y disparar el acorde correspondiente dentro del contexto.
 - Visualizar solo el voicing activo exacto en el teclado antes que tonos repetidos por todo el registro.
 - Escuchar el acorde con sonido simple y respuesta rapida mientras se mantiene presionado el grado, tecla fisica o tecla visual.
-- Usar voicings automaticos en posicion fundamental: los grados parten de C4 y las teclas visuales ajustan el registro para que el voicing completo entre en C3-C6.
+- Usar voicings automaticos en posicion fundamental: los grados parten de C4 y las teclas visuales conservan el registro disparado; si el acorde excede C3-C6, se muestra y reproduce un voicing parcial con las notas disponibles.
 - Mostrar notacion basica segun preferencia: nombres de nota y/o grados.
 
 ## Jerarquia de experiencia

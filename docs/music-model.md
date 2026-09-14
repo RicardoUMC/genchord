@@ -40,7 +40,7 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 - La visualizacion de teclado resalta solo las notas exactas del voicing activo, no cada repeticion de la misma clase de altura entre C3-C6; dentro de ese voicing, la nota generadora lleva un acento visual propio.
 - Los acordes disparados por grados usan por defecto un voicing ascendente desde el registro C4 en adelante; si una triada cruza C, la nota superior sube a la siguiente octava.
 - Las restricciones de escala/contexto aplican a los grados. El teclado visual es permisivo: una tecla diatonica puede disparar el grado contextual correspondiente; una tecla fuera de escala o sin contexto sigue sonando como nota individual y se resalta sola.
-- Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema usa la octava inferior mas cercana que mantenga el voicing completo visible.
+- Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema no reubica el acorde a una octava inferior: conserva el registro disparado y reproduce/muestra solo las notas del voicing que existen dentro del teclado visible.
 - La escritura del prototipo evita dobles alteraciones y nombres como `E#`, `B#`, `Cb` o `Fb`; esas decisiones quedan para una capa de notacion mas completa.
 
 ## Preguntas abiertas
