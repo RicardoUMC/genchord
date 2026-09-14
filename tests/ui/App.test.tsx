@@ -46,9 +46,14 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('C4 · E4 · G4')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'G', octave: 4 }] })
     expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
-    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C4 generator active')
+    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C4 generator note pressed')
+    expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-generator', 'is-active')
+    expect(screen.getByTestId('generator-piano-key').querySelector('.source-marker-on-white')).toBeInTheDocument()
     fireEvent.pointerUp(tonicButton)
     expect(releaseVoicing).toHaveBeenCalled()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
+    expect(screen.getByText('C · E · G')).toBeInTheDocument()
   })
 
   it('maps physical keyboard input to the same degree trigger', async () => {
@@ -63,6 +68,9 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('G4 · B4 · D5')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'G', octave: 4 }, { note: 'B', octave: 4 }, { note: 'D', octave: 5 }] })
     expect(releaseVoicing).toHaveBeenCalled()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
+    expect(screen.getByText('G · B · D')).toBeInTheDocument()
   })
 
   it('does not retrigger physical keyboard shortcuts while a key is held', async () => {
@@ -105,9 +113,12 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
     expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
-    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('D4 generator active')
-    fireEvent.pointerUp(screen.getByRole('button', { name: 'D4 generator active' }))
+    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('D4 generator note pressed')
+    fireEvent.pointerUp(screen.getByRole('button', { name: 'D4 generator note pressed' }))
     expect(releaseVoicing).toHaveBeenCalled()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
+    expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
   })
 
   it('plays and highlights only an out-of-scale visual keyboard key', async () => {
@@ -123,9 +134,13 @@ describe('GenChord study UI', () => {
     expect(screen.queryByText(/outside C major/i)).not.toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C#', octave: 4 }] })
     expect(screen.queryAllByTestId('active-piano-key')).toHaveLength(0)
-    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C#4 generator active')
-    fireEvent.pointerUp(screen.getByRole('button', { name: 'C#4 generator active' }))
+    expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C#4 generator note pressed')
+    expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-generator')
+    expect(screen.getByTestId('generator-piano-key').querySelector('.source-marker-on-black')).toBeInTheDocument()
+    fireEvent.pointerUp(screen.getByRole('button', { name: 'C#4 generator note pressed' }))
     expect(releaseVoicing).toHaveBeenCalled()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
+    expect(screen.getByText('C#4')).toBeInTheDocument()
   })
 
   it('keeps high visual-keyboard chords fully highlightable inside C3-C6', async () => {
@@ -139,9 +154,9 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('B4 · D5 · F5')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'B', octave: 4 }, { note: 'D', octave: 5 }, { note: 'F', octave: 5 }] })
     expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
-    expect(screen.getByRole('button', { name: 'B4 generator active' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'D5 active' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'F5 active' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'B4 generator note pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'D5 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'F5 chord tone pressed' })).toBeInTheDocument()
   })
 
   it('plays and highlights a single keyboard tone when no musical context exists', async () => {

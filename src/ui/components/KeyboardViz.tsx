@@ -35,15 +35,15 @@ function voicedKeyId({ note, octave }: VoicedNote) {
 }
 
 interface KeyboardVizProps {
-  result: StudyResult | null
+  activeInput: StudyResult | null
   guidance: string | null
   onStartKey: (key: VoicedNote) => void
   onStopKey: () => void
 }
 
-export function KeyboardViz({ result, guidance, onStartKey, onStopKey }: KeyboardVizProps) {
-  const activeVoicing = new Set((result?.voicing ?? []).map(voicedKeyId))
-  const generatorKey = result ? voicedKeyId(result.generatorNote) : null
+export function KeyboardViz({ activeInput, guidance, onStartKey, onStopKey }: KeyboardVizProps) {
+  const activeVoicing = new Set((activeInput?.voicing ?? []).map(voicedKeyId))
+  const generatorKey = activeInput ? voicedKeyId(activeInput.generatorNote) : null
 
   return (
     <section className="keyboard-panel" aria-labelledby="keyboard-heading">
@@ -82,9 +82,10 @@ export function KeyboardViz({ result, guidance, onStartKey, onStopKey }: Keyboar
                   onStopKey()
                 }
               }}
-              aria-label={`${key.note}${key.octave}${generator ? ' generator active' : active ? ' active' : ''}`}
+              aria-label={`${key.note}${key.octave}${generator ? ' generator note' : active ? ' chord tone' : ''}${active ? ' pressed' : ''}`}
             >
               {!key.accidental && `${key.note}${key.octave}`}
+              {generator && <span className={`source-marker ${key.accidental ? 'source-marker-on-black' : 'source-marker-on-white'}`} aria-hidden="true">●</span>}
             </button>
           )
         })}

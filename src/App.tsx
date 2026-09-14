@@ -31,6 +31,7 @@ export default function App() {
 
   const releaseActiveVoicing = () => {
     releaseVoicing()
+    dispatch({ type: 'releaseActiveInput' })
   }
 
   const triggerKeyboardKey = (key: VoicedNote) => {
@@ -60,7 +61,7 @@ export default function App() {
           <h2 id="instrument-heading">Keyboard workspace</h2>
           <p className="helper">Active highlights show only the triggered voicing or single key, not every matching pitch class.</p>
         </div>
-        <KeyboardViz result={state.activeStudy} guidance={state.guidance} onStartKey={triggerKeyboardKey} onStopKey={releaseActiveVoicing} />
+        <KeyboardViz activeInput={state.activeInput} guidance={state.guidance} onStartKey={triggerKeyboardKey} onStopKey={releaseActiveVoicing} />
       </section>
 
       <div className="control-grid" aria-label="Sound and study configuration">
