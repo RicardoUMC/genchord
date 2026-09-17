@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { initAudio, releaseVoicing, startVoicing } from './audio'
 import type { ChordResult, DegreeNum, NoteName, Tonality, VoicedNote } from './music-core'
-import { findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
+import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, useStudyState } from './ui'
 
 export default function App() {
   const { state, activeKey, dispatch } = useStudyState()
   const [audioError, setAudioError] = useState<string | null>(null)
+  const scaleNotes = activeKey ? buildScale(activeKey) : null
 
   const warmAudio = () => {
     void initAudio().catch(() => {
@@ -61,7 +62,7 @@ export default function App() {
           <h2 id="instrument-heading">Keyboard workspace</h2>
           <p className="helper">Active highlights show only the triggered voicing or single key, not every matching pitch class.</p>
         </div>
-        <KeyboardViz activeInput={state.activeInput} guidance={state.guidance} onStartKey={triggerKeyboardKey} onStopKey={releaseActiveVoicing} />
+        <KeyboardViz activeInput={state.activeInput} guidance={state.guidance} scaleNotes={scaleNotes} onStartKey={triggerKeyboardKey} onStopKey={releaseActiveVoicing} />
       </section>
 
       <div className="control-grid" aria-label="Sound and study configuration">

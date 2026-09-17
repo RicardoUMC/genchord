@@ -72,6 +72,43 @@ describe('GenChord study UI', () => {
     expect(within(keyboard).getByRole('button', { name: 'C6' })).toBeInTheDocument()
   })
 
+  it('visually mutes out-of-scale keys without disabling keyboard playback', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+    const cSharp = within(keyboard).getByRole('button', { name: 'C#4' })
+    const d = within(keyboard).getByRole('button', { name: 'D4' })
+
+    expect(cSharp).toHaveClass('is-out-of-scale')
+    expect(cSharp).toHaveAttribute('data-scale-membership', 'out')
+    expect(cSharp).not.toBeDisabled()
+    expect(d).not.toHaveClass('is-out-of-scale')
+    expect(d).toHaveAttribute('data-scale-membership', 'in')
+
+    fireEvent.pointerDown(cSharp)
+
+    expect(screen.getByText('Keyboard tone C#4')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C#', octave: 4 }] })
+    expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-out-of-scale', 'is-generator')
+  })
+
+  it('matches flat scale notes to sharp visual keyboard keys for scale guidance', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /root note/i }), 'Ab')
+    await user.click(screen.getByRole('button', { name: 'major' }))
+
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+
+    expect(within(keyboard).getByRole('button', { name: 'C#4' })).not.toHaveClass('is-out-of-scale')
+    expect(within(keyboard).getByRole('button', { name: 'C#4' })).toHaveAttribute('data-scale-membership', 'in')
+    expect(within(keyboard).getByRole('button', { name: 'D4' })).toHaveClass('is-out-of-scale')
+  })
+
   it('maps physical keyboard input to the same degree trigger', async () => {
     const user = userEvent.setup()
     render(<App />)

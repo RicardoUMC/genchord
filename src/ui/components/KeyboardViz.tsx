@@ -69,13 +69,15 @@ function blackKeyStyle(note: NoteName): CSSProperties {
 interface KeyboardVizProps {
   activeInput: StudyResult | null
   guidance: string | null
+  scaleNotes: NoteName[] | null
   onStartKey: (key: VoicedNote) => void
   onStopKey: () => void
 }
 
-export function KeyboardViz({ activeInput, guidance, onStartKey, onStopKey }: KeyboardVizProps) {
+export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onStopKey }: KeyboardVizProps) {
   const activeVoicing = new Set((activeInput?.voicing ?? []).map(voicedKeyId))
   const generatorKey = activeInput ? voicedKeyId(activeInput.generatorNote) : null
+  const inScaleNotes = scaleNotes ? enharmonicSet(scaleNotes) : null
   const activePointerIdRef = useRef<number | null>(null)
   const activePointerKeyIdRef = useRef<string | null>(null)
 
@@ -138,13 +140,15 @@ export function KeyboardViz({ activeInput, guidance, onStartKey, onStopKey }: Ke
     const keyId = `${key.note}${key.octave}`
     const active = activeVoicing.has(keyId)
     const generator = generatorKey === keyId
+    const outOfScale = inScaleNotes !== null && !inScaleNotes.has(key.note)
 
     return (
       <button
         key={keyId}
         type="button"
-        className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
+        className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${outOfScale ? 'is-out-of-scale' : ''} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
         style={key.accidental ? blackKeyStyle(key.note) : undefined}
+        data-scale-membership={outOfScale ? 'out' : inScaleNotes ? 'in' : undefined}
         data-testid={generator ? 'generator-piano-key' : active ? 'active-piano-key' : undefined}
         onPointerDown={(event) => startPointerKey(event, key, keyId)}
         onPointerEnter={(event) => enterPointerKey(event, key, keyId)}
