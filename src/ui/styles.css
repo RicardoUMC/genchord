@@ -390,7 +390,7 @@ select:focus-visible {
   background: linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
 }
 
-.white-key:first-child {
+.keyboard-register:first-child .white-key:first-child {
   border-left-width: 1px;
 }
 
