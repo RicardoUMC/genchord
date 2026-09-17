@@ -11,7 +11,11 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 18% 0%, rgb(217 164 65 / 0.09), transparent 26rem),
+    radial-gradient(
+      circle at 18% 0%,
+      rgb(217 164 65 / 0.09),
+      transparent 26rem
+    ),
     #14110d;
 }
 
@@ -29,7 +33,10 @@ select {
     linear-gradient(180deg, rgb(247 242 232 / 0.06), transparent 1px),
     linear-gradient(90deg, rgb(217 164 65 / 0.04) 1px, transparent 1px),
     linear-gradient(#17130e, #14110d);
-  background-size: auto, 48px 48px, auto;
+  background-size:
+    auto,
+    48px 48px,
+    auto;
 }
 
 .hero {
@@ -88,8 +95,7 @@ select {
   border-top-color: #b38843;
   border-radius: 10px;
   background:
-    linear-gradient(180deg, rgb(217 164 65 / 0.08), transparent 7rem),
-    #1b1610;
+    linear-gradient(180deg, rgb(217 164 65 / 0.08), transparent 7rem), #1b1610;
   box-shadow: 0 20px 42px rgb(0 0 0 / 0.28);
 }
 
@@ -126,7 +132,10 @@ select {
 
 .control-grid {
   display: grid;
-  grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.55fr) minmax(14rem, 1fr);
+  grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.55fr) minmax(
+      14rem,
+      1fr
+    );
   gap: 1rem;
   align-items: stretch;
 }
@@ -138,8 +147,7 @@ select {
   border-top-color: #7b623b;
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 4rem),
-    #1d1812;
+    linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 4rem), #1d1812;
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.22);
 }
 
@@ -168,15 +176,17 @@ select {
   padding: 0.8rem 1rem;
   border-left: 3px solid #8a6a32;
   background:
-    linear-gradient(90deg, rgb(217 164 65 / 0.09), transparent 42%),
-    #18140f;
+    linear-gradient(90deg, rgb(217 164 65 / 0.09), transparent 42%), #18140f;
 }
 
 button {
   cursor: pointer;
   padding: 0.8rem 1rem;
   box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08);
-  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 button:hover:not(:disabled) {
@@ -227,8 +237,7 @@ select:focus-visible {
   align-content: center;
   border-top-color: #78623e;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent),
-    #18140f;
+    linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent), #18140f;
 }
 
 .degree-grid button.is-active {
@@ -265,8 +274,7 @@ select:focus-visible {
   border-radius: 6px;
   color: #1b1408;
   background:
-    linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 40%),
-    #c7932f;
+    linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 40%), #c7932f;
   font-size: 2rem;
   font-weight: 800;
 }
@@ -318,9 +326,9 @@ select:focus-visible {
 }
 
 .keyboard {
-  --white-key-width: clamp(2rem, 3cqw, 2.6rem);
+  --white-key-width: clamp(1.67rem, 2.7cqw, 2.35rem);
   --black-key-width: calc(var(--white-key-width) * 0.56);
-  --key-height: calc(var(--white-key-width) * 3.46);
+  --key-height: clamp(6.574rem, 9.861cqw, 8.477rem);
   --black-key-height: calc(var(--key-height) * 0.61);
 
   display: flex;
@@ -409,7 +417,13 @@ select:focus-visible {
     inset 0 -0.35rem 0 rgb(0 0 0 / 0.28),
     0 0.16rem 0.28rem rgb(0 0 0 / 0.5);
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 0.08), transparent 18%, transparent 82%, rgb(0 0 0 / 0.26)),
+    linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.08),
+      transparent 18%,
+      transparent 82%,
+      rgb(0 0 0 / 0.26)
+    ),
     linear-gradient(#282016, #15100b 72%, #090705);
 }
 
@@ -436,15 +450,20 @@ select:focus-visible {
 .black-key:hover:not(:disabled) {
   border-color: #6f5738;
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 0.1), transparent 18%, transparent 82%, rgb(0 0 0 / 0.28)),
+    linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.1),
+      transparent 18%,
+      transparent 82%,
+      rgb(0 0 0 / 0.28)
+    ),
     linear-gradient(#372a1d, #1a130d 72%, #0b0805);
 }
 
 .piano-key.is-active {
   border-color: #ffcf5a;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 42%),
-    #c7932f;
+    linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 42%), #c7932f;
   color: #1b1408;
   box-shadow:
     inset 0 4px 0 rgb(27 20 8 / 0.22),
