@@ -23,11 +23,14 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 - Visualizar solo el voicing activo exacto en el teclado antes que tonos repetidos por todo el registro.
 - Escuchar el acorde con sonido simple y respuesta rapida mientras se mantiene presionado el grado, tecla fisica o tecla visual.
 - Usar voicings automaticos en posicion fundamental: los grados parten de C4 y las teclas visuales conservan el registro disparado; si el acorde excede C3-C6, se muestra y reproduce un voicing parcial con las notas disponibles.
+- Automatic chords are enabled by default and can be toggled off with the visible control or the A shortcut; when disabled, degree and keyboard triggers play only the selected/root note even inside a scale context.
+- Held inputs are polyphonic: overlapping degree, shortcut, and visual-keyboard triggers sustain independently until their own input is released.
+- The active study result appears in a compact `Now Studying` strip directly above the keyboard so the player can read context, auto-chord state, range, and current result without looking below the instrument.
 - Mostrar notacion basica en el modelo actual: nombres de nota tipo CDE, grados y numerales romanos segun calidad. Otras preferencias de notacion quedan para una etapa posterior.
 
 ## Jerarquia de experiencia
 
-El teclado debe ser el elemento visual y funcional primario. Contexto, grados y resultado actual son configuracion de sonido/estudio alrededor del instrumento, no contenido tipo landing page ni bloques principales separados. El flujo visible debe leerse como: elegir contexto musical → mantener presionado un grado o tecla → identificar acorde o nota individual → ver y escuchar las notas exactas en el teclado. Dentro del voicing activo, la nota generadora se diferencia ligeramente de las demas notas para conectar el disparador con el acorde resultante; cuando se toca una nota individual, esa tecla puede ser a la vez activa y generadora.
+El teclado debe ser el elemento visual y funcional primario. Contexto, grados y resultado actual son configuracion de sonido/estudio alrededor del instrumento, no contenido tipo landing page ni bloques principales separados. The visible study flow should keep the active result above the keyboard: choose musical context → hold a degree or key → identify the chord or single tone in the `Now Studying` strip → see and hear the exact notes on the keyboard. Dentro del voicing activo, la nota generadora se diferencia ligeramente de las demas notas para conectar el disparador con el acorde resultante; cuando se toca una nota individual, esa tecla puede ser a la vez activa y generadora.
 
 ## Despues del MVP
 

@@ -17,6 +17,7 @@ const toneMock = vi.hoisted(() => ({
   synthTriggerRelease: vi.fn(),
   samplerTriggerRelease: vi.fn(),
   samplerLoaded: false,
+  contextState: 'suspended' as 'running' | 'suspended',
   samplerOptions: undefined as ToneSamplerOptions | undefined,
 }))
 
@@ -25,8 +26,18 @@ type ToneSamplerOptions = {
 }
 
 vi.mock('tone', () => ({
+  context: {
+    get state() {
+      return toneMock.contextState
+    },
+  },
   now: toneMock.now,
-  start: toneMock.start,
+  start: vi.fn(() => {
+    const started = toneMock.start()
+    return Promise.resolve(started).then(() => {
+      toneMock.contextState = 'running'
+    })
+  }),
   Synth: vi.fn(),
   PolySynth: vi.fn(function (this: { dispose: () => void; toDestination: () => unknown; triggerAttackRelease: () => void; triggerAttack: () => void; triggerRelease: () => void }) {
     this.dispose = toneMock.dispose
@@ -65,6 +76,7 @@ describe('audio playback adapter', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     toneMock.samplerLoaded = false
+    toneMock.contextState = 'suspended'
     toneMock.samplerOptions = undefined
     disposeAudio()
   })
@@ -107,8 +119,8 @@ describe('audio playback adapter', () => {
   })
 
   it('sustains notes until an explicit release', async () => {
-    await startVoicing({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
-    releaseVoicing()
+    await startVoicing({ triggerId: 'degree:1', voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
+    releaseVoicing('degree:1')
 
     expect(toneMock.synthTriggerAttack).toHaveBeenCalledWith(['D4', 'F4', 'A4'], 12.25)
     expect(toneMock.synthTriggerRelease).toHaveBeenCalledWith(['D4', 'F4', 'A4'], 12.25)
@@ -118,8 +130,8 @@ describe('audio playback adapter', () => {
     const audioStart = deferred<void>()
     toneMock.start.mockReturnValueOnce(audioStart.promise)
 
-    const pendingStart = startVoicing({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
-    releaseVoicing()
+    const pendingStart = startVoicing({ triggerId: 'degree:1', voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
+    releaseVoicing('degree:1')
 
     expect(toneMock.synthTriggerAttack).not.toHaveBeenCalled()
 
@@ -130,11 +142,62 @@ describe('audio playback adapter', () => {
     expect(toneMock.synthTriggerRelease).not.toHaveBeenCalled()
   })
 
-  it('releases the previous sustained voicing before starting a new one', async () => {
-    await startVoicing({ voicing: [{ note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'G', octave: 4 }] })
-    await startVoicing({ voicing: [{ note: 'G', octave: 4 }, { note: 'B', octave: 4 }, { note: 'D', octave: 5 }] })
+  it('sustains overlapping triggers independently', async () => {
+    await startVoicing({ triggerId: 'degree:1', voicing: [{ note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'G', octave: 4 }] })
+    await startVoicing({ triggerId: 'degree:5', voicing: [{ note: 'G', octave: 4 }, { note: 'B', octave: 4 }, { note: 'D', octave: 5 }] })
 
-    expect(toneMock.synthTriggerRelease).toHaveBeenCalledWith(['C4', 'E4', 'G4'], 12.25)
-    expect(toneMock.synthTriggerAttack).toHaveBeenLastCalledWith(['G4', 'B4', 'D5'], 12.25)
+    releaseVoicing('degree:1')
+
+    expect(toneMock.synthTriggerRelease).toHaveBeenCalledWith(['C4', 'E4'], 12.25)
+    expect(toneMock.synthTriggerRelease).not.toHaveBeenCalledWith(['G4'], 12.25)
+    expect(toneMock.synthTriggerAttack).toHaveBeenLastCalledWith(['B4', 'D5'], 12.25)
+  })
+
+  it('retries audio initialization after a failed unlock attempt', async () => {
+    toneMock.start.mockRejectedValueOnce(new Error('not activated'))
+
+    await expect(initAudio()).rejects.toThrow('not activated')
+    await initAudio()
+
+    expect(toneMock.start).toHaveBeenCalledTimes(2)
+    expect(toneMock.contextState).toBe('running')
+  })
+
+  it('restarts Tone.js when the context is suspended after a successful unlock', async () => {
+    await initAudio()
+    toneMock.contextState = 'suspended'
+
+    await initAudio()
+
+    expect(toneMock.start).toHaveBeenCalledTimes(2)
+    expect(toneMock.contextState).toBe('running')
+  })
+
+  it('releases a shared note only after its last owner releases it', async () => {
+    await startVoicing({ triggerId: 'first', voicing: [{ note: 'C', octave: 4 }] })
+    await startVoicing({ triggerId: 'second', voicing: [{ note: 'C', octave: 4 }] })
+
+    releaseVoicing('first')
+    expect(toneMock.synthTriggerRelease).not.toHaveBeenCalled()
+
+    releaseVoicing('second')
+    expect(toneMock.synthTriggerRelease).toHaveBeenCalledWith(['C4'], 12.25)
+  })
+
+  it('keeps sustained note ownership separate when playback switches from synth to sampler', async () => {
+    await startVoicing({ triggerId: 'synth-note', voicing: [{ note: 'C', octave: 4 }] })
+    toneMock.samplerLoaded = true
+
+    await startVoicing({ triggerId: 'sampler-note', voicing: [{ note: 'C', octave: 4 }] })
+
+    expect(toneMock.synthTriggerAttack).toHaveBeenCalledWith(['C4'], 12.25)
+    expect(toneMock.samplerTriggerAttack).toHaveBeenCalledWith(['C4'], 12.25)
+
+    releaseVoicing('synth-note')
+    expect(toneMock.synthTriggerRelease).toHaveBeenCalledWith(['C4'], 12.25)
+    expect(toneMock.samplerTriggerRelease).not.toHaveBeenCalled()
+
+    releaseVoicing('sampler-note')
+    expect(toneMock.samplerTriggerRelease).toHaveBeenCalledWith(['C4'], 12.25)
   })
 })

@@ -1,13 +1,15 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
-import { initAudio, releaseVoicing, startVoicing } from '../../src/audio'
+import { initAudio, releaseAllVoicings, releaseVoicing, startVoicing } from '../../src/audio'
 
 vi.mock('../../src/audio', () => ({
   initAudio: vi.fn().mockResolvedValue(undefined),
+  installAudioWarmup: vi.fn(() => vi.fn()),
   startVoicing: vi.fn().mockResolvedValue(undefined),
   releaseVoicing: vi.fn(),
+  releaseAllVoicings: vi.fn(),
 }))
 
 async function selectCmajor(user: ReturnType<typeof userEvent.setup>) {
@@ -29,10 +31,10 @@ describe('GenChord study UI', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    const keyboardWorkspace = screen.getByRole('heading', { name: 'Keyboard workspace' })
+    const nowStudying = screen.getByRole('heading', { name: 'No key selected' })
     const contextPanel = screen.getByRole('heading', { name: 'Choose the key' })
 
-    expect(keyboardWorkspace.compareDocumentPosition(contextPanel)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(nowStudying.compareDocumentPosition(contextPanel)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
 
     await selectCmajor(user)
     const tonicButton = screen.getByRole('button', { name: /I1 \/ Q/i })
@@ -41,10 +43,10 @@ describe('GenChord study UI', () => {
     expect(screen.getByRole('heading', { name: 'C major' })).toBeInTheDocument()
     expect(screen.getAllByText('I')).toHaveLength(3)
     expect(screen.getByText('C · E · G')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Exact voicing C3-C6' })).toBeInTheDocument()
+    expect(screen.getByText('Keyboard C3-C6')).toBeInTheDocument()
     expect(screen.getByText('Keyboard voicing')).toBeInTheDocument()
     expect(screen.getByText('C4 · E4 · G4')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'G', octave: 4 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'G', octave: 4 }] }))
     expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
     expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C4 generator note pressed')
     expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-generator', 'is-active')
@@ -91,7 +93,7 @@ describe('GenChord study UI', () => {
     fireEvent.pointerDown(cSharp)
 
     expect(screen.getByText('Keyboard tone C#4')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C#', octave: 4 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C#', octave: 4 }] }))
     expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-out-of-scale', 'is-generator')
   })
 
@@ -119,7 +121,7 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('G major')).toBeInTheDocument()
     expect(screen.getByText('G · B · D')).toBeInTheDocument()
     expect(screen.getByText('G4 · B4 · D5')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'G', octave: 4 }, { note: 'B', octave: 4 }, { note: 'D', octave: 5 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'G', octave: 4 }, { note: 'B', octave: 4 }, { note: 'D', octave: 5 }] }))
     expect(releaseVoicing).toHaveBeenCalled()
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
@@ -140,6 +142,43 @@ describe('GenChord study UI', () => {
     expect(releaseVoicing).toHaveBeenCalledTimes(1)
   })
 
+  it('lets editable controls use degree shortcut keys without triggering playback', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    vi.clearAllMocks()
+
+    const rootSelect = screen.getByRole('combobox', { name: /root note/i })
+    const keyDownEvent = new KeyboardEvent('keydown', { code: 'Digit1', bubbles: true, cancelable: true })
+    const keyUpEvent = new KeyboardEvent('keyup', { code: 'Digit1', bubbles: true, cancelable: true })
+
+    expect(rootSelect.dispatchEvent(keyDownEvent)).toBe(true)
+    expect(rootSelect.dispatchEvent(keyUpEvent)).toBe(true)
+    expect(keyDownEvent.defaultPrevented).toBe(false)
+    expect(keyUpEvent.defaultPrevented).toBe(false)
+    expect(startVoicing).not.toHaveBeenCalled()
+    expect(releaseVoicing).not.toHaveBeenCalled()
+  })
+
+  it('releases a captured shortcut even when keyup targets an editable control', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    vi.clearAllMocks()
+
+    const rootSelect = screen.getByRole('combobox', { name: /root note/i })
+    const keyUpEvent = new KeyboardEvent('keyup', { code: 'Digit1', bubbles: true, cancelable: true })
+
+    fireEvent.keyDown(window, { code: 'Digit1' })
+    expect(rootSelect.dispatchEvent(keyUpEvent)).toBe(false)
+
+    expect(keyUpEvent.defaultPrevented).toBe(true)
+    expect(startVoicing).toHaveBeenCalledTimes(1)
+    expect(releaseVoicing).toHaveBeenCalledWith('degree:shortcut:Digit1')
+  })
+
   it('guards empty key state and clears chord feedback on key change', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -151,7 +190,21 @@ describe('GenChord study UI', () => {
 
     expect(screen.queryByText('C · E · G')).not.toBeInTheDocument()
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(releaseAllVoicings).toHaveBeenCalled()
     expect(initAudio).toHaveBeenCalled()
+  })
+
+  it('releases sustained playback when tonality changes clear held inputs', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    fireEvent.pointerDown(screen.getByRole('button', { name: /I1 \/ Q/i }))
+    await user.click(screen.getByRole('button', { name: 'minor' }))
+
+    expect(screen.queryByText('C · E · G')).not.toBeInTheDocument()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
+    expect(releaseAllVoicings).toHaveBeenCalled()
   })
 
   it('plays a contextual chord from a clicked visual keyboard key', async () => {
@@ -164,7 +217,7 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('D minor')).toBeInTheDocument()
     expect(screen.getAllByText('ii')).toHaveLength(3)
     expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] }))
     expect(screen.getAllByTestId('active-piano-key')).toHaveLength(2)
     expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('D4 generator note pressed')
     fireEvent.pointerUp(screen.getByRole('button', { name: 'D4 generator note pressed' }))
@@ -172,6 +225,38 @@ describe('GenChord study UI', () => {
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
     expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
+  })
+
+  it('starts visual keyboard playback from click-only activation', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    const d4 = screen.getByRole('button', { name: 'D4' })
+
+    fireEvent.click(d4)
+
+    expect(screen.getByText('D minor')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ triggerId: 'keyboard:click:D4', voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] }))
+    await waitFor(() => {
+      expect(releaseVoicing).toHaveBeenCalledWith('keyboard:click:D4')
+    })
+  })
+
+  it('does not double-trigger visual keyboard playback after pointer activation dispatches click', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    const d4 = screen.getByRole('button', { name: 'D4' })
+
+    vi.clearAllMocks()
+    fireEvent.pointerDown(d4, { pointerId: 1, buttons: 1 })
+    fireEvent.pointerUp(d4, { pointerId: 1 })
+    fireEvent.click(d4)
+
+    expect(startVoicing).toHaveBeenCalledTimes(1)
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ triggerId: 'keyboard:pointer:1:D4' }))
   })
 
   it('plays each visual keyboard key entered during an active pointer drag', async () => {
@@ -191,12 +276,12 @@ describe('GenChord study UI', () => {
     fireEvent.pointerEnter(e4, { pointerId: 1, buttons: 1 })
 
     expect(startVoicing).toHaveBeenCalledTimes(2)
-    expect(startVoicing).toHaveBeenLastCalledWith({ voicing: [{ note: 'E', octave: 4 }, { note: 'G', octave: 4 }, { note: 'B', octave: 4 }] })
+    expect(startVoicing).toHaveBeenLastCalledWith(expect.objectContaining({ voicing: [{ note: 'E', octave: 4 }, { note: 'G', octave: 4 }, { note: 'B', octave: 4 }] }))
     expect(screen.getByText('E minor')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'E4 generator note pressed' })).toBeInTheDocument()
 
     fireEvent.pointerUp(screen.getByRole('button', { name: 'E4 generator note pressed' }), { pointerId: 1 })
-    expect(releaseVoicing).toHaveBeenCalledTimes(1)
+    expect(releaseVoicing).toHaveBeenCalledTimes(2)
     expect(within(keyboard).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
   })
 
@@ -211,7 +296,7 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('Single note')).toBeInTheDocument()
     expect(screen.getByText('C#4')).toBeInTheDocument()
     expect(screen.queryByText(/outside C major/i)).not.toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C#', octave: 4 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C#', octave: 4 }] }))
     expect(screen.queryAllByTestId('active-piano-key')).toHaveLength(0)
     expect(screen.getByTestId('generator-piano-key')).toHaveAccessibleName('C#4 generator note pressed')
     expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-generator')
@@ -231,8 +316,8 @@ describe('GenChord study UI', () => {
 
     expect(screen.getByText('B diminished')).toBeInTheDocument()
     expect(screen.getAllByText('B5').length).toBeGreaterThan(0)
-    expect(screen.getByText('Partial voicing: only notes available on the visible keyboard are shown and played.')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'B', octave: 5 }] })
+    expect(screen.queryByText('Partial voicing: visible keyboard notes only.')).not.toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'B', octave: 5 }] }))
     expect(screen.queryAllByTestId('active-piano-key')).toHaveLength(0)
     expect(screen.getByRole('button', { name: 'B5 generator note pressed' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'B4 generator note pressed' })).not.toBeInTheDocument()
@@ -249,9 +334,83 @@ describe('GenChord study UI', () => {
 
     expect(screen.getAllByText('C major').length).toBeGreaterThan(0)
     expect(screen.getAllByText('C6').length).toBeGreaterThan(0)
-    expect(screen.getByText('Partial voicing: only notes available on the visible keyboard are shown and played.')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C', octave: 6 }] })
+    expect(screen.queryByText('Partial voicing: visible keyboard notes only.')).not.toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 6 }] }))
     expect(screen.getByRole('button', { name: 'C6 generator note pressed' })).toBeInTheDocument()
+  })
+
+  it('keeps overlapping held inputs active when one trigger is released', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    fireEvent.keyDown(window, { code: 'Digit1' })
+    fireEvent.keyDown(window, { code: 'Digit2' })
+    fireEvent.keyUp(window, { code: 'Digit1' })
+
+    expect(releaseVoicing).toHaveBeenCalledWith('degree:shortcut:Digit1')
+    expect(screen.getByRole('button', { name: 'D4 generator note pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'F4 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'A4 chord tone pressed' })).toBeInTheDocument()
+  })
+
+  it('releases only the matching visual keyboard pointer and displays the remaining held input', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+
+    fireEvent.pointerDown(within(keyboard).getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
+    fireEvent.pointerDown(within(keyboard).getByRole('button', { name: 'F4 chord tone pressed' }), { pointerId: 2, buttons: 1 })
+    fireEvent.pointerUp(window, { pointerId: 1 })
+
+    expect(releaseVoicing).toHaveBeenCalledWith('keyboard:pointer:1:D4')
+    expect(releaseVoicing).not.toHaveBeenCalledWith('keyboard:pointer:2:F4')
+    expect(screen.getByText('F major')).toBeInTheDocument()
+    expect(screen.getByText('F4 · A4 · C5')).toBeInTheDocument()
+    expect(within(keyboard).getByRole('button', { name: 'F4 generator note pressed' })).toBeInTheDocument()
+  })
+
+  it('toggles automatic chords with the visible control and plays single tones while disabled', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.click(screen.getByRole('button', { name: 'Auto chords: On' }))
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('Keyboard tone D4')).toBeInTheDocument()
+    expect(screen.getByText('Single note')).toBeInTheDocument()
+    expect(screen.queryByText('D minor')).not.toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 4 }] }))
+    expect(screen.getByRole('button', { name: 'D4 generator note pressed' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'F4 chord tone pressed' })).not.toBeInTheDocument()
+  })
+
+  it('plays degree buttons as single selected notes while automatic chords are disabled', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.click(screen.getByRole('button', { name: 'Auto chords: On' }))
+    fireEvent.pointerDown(screen.getByRole('button', { name: /ii2 \/ W/i }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('Keyboard tone D4')).toBeInTheDocument()
+    expect(screen.getByText('Single note')).toBeInTheDocument()
+    expect(screen.queryByText('D minor')).not.toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 4 }] }))
+  })
+
+  it('toggles automatic chords with the A shortcut', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const toggle = screen.getByRole('button', { name: 'Auto chords: On' })
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await user.keyboard('a')
+    expect(screen.getByRole('button', { name: 'Auto chords: Off' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('plays and highlights a single keyboard tone when no musical context exists', async () => {
@@ -262,6 +421,6 @@ describe('GenChord study UI', () => {
 
     expect(screen.getByText('Keyboard tone C4')).toBeInTheDocument()
     expect(screen.getByText('Single note')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith({ voicing: [{ note: 'C', octave: 4 }] })
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 4 }] }))
   })
 })

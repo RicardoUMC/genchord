@@ -26,7 +26,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 
 - `music-core` es una frontera pura sin React, DOM ni audio.
 - La teoria inicial cubre 12 raices mayores y 12 menores naturales para triadas diatonicas.
-- El audio usa Tone.js detras de un adaptador: `Tone.start()` corre desde gestos explicitos del usuario, un `Tone.Sampler` de piano se prefiere cuando las muestras estan listas y `PolySynth` queda como fallback si las muestras no estan disponibles o todavia no cargaron.
+- El audio usa Tone.js detras de un adaptador: `Tone.start()` corre desde gestos explicitos del usuario, retries remain possible after failed or suspended unlock attempts, and a one-time `pointerup`/`click`/`keydown` warm-up path helps mobile browsers unlock audio from valid activation events. A `Tone.Sampler` de piano se prefiere cuando las muestras estan listas y `PolySynth` queda como fallback si las muestras no estan disponibles o todavia no cargaron.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
 
 ## Audio y muestras
@@ -35,6 +35,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 - Esa CDN es una dependencia externa de realismo sonoro; no debe bloquear el estudio si falla o tarda.
 - Mientras el sampler no este listo, o si queda marcado como no disponible, el adaptador reproduce con `Tone.PolySynth`.
 - La UI no debe conocer si suena sampler o synth: solo envia eventos musicales ya resueltos.
+- Audio unlock state, retry behavior, and mobile activation listeners stay inside the `audio` adapter boundary; UI components only request playback or warm-up.
 
 ## Despliegue
 

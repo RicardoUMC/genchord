@@ -4,31 +4,47 @@ import type { ChordResult, DegreeNum, Key, NoteName, StudyResult, Tonality } fro
 interface StudyState {
   root: NoteName | null
   tonality: Tonality | null
+  autoChordsEnabled: boolean
   activeDegree: DegreeNum | null
   activeStudy: StudyResult | null
-  activeInput: StudyResult | null
+  activeInputs: Record<string, StudyResult>
   guidance: string | null
 }
 
 type StudyAction =
   | { type: 'setRoot'; root: NoteName }
   | { type: 'setTonality'; tonality: Tonality }
-  | { type: 'triggerChord'; degree: DegreeNum; chord: ChordResult }
-  | { type: 'triggerKeyboardTone'; tone: StudyResult }
-  | { type: 'releaseActiveInput' }
+  | { type: 'toggleAutoChords' }
+  | { type: 'triggerChord'; triggerId: string; degree: DegreeNum; chord: ChordResult }
+  | { type: 'triggerKeyboardTone'; triggerId: string; tone: StudyResult }
+  | { type: 'releaseHeldInput'; triggerId: string }
+  | { type: 'releaseAllInputs' }
   | { type: 'setGuidance'; guidance: string }
 
 const initialState: StudyState = {
   root: null,
   tonality: null,
+  autoChordsEnabled: true,
   activeDegree: null,
   activeStudy: null,
-  activeInput: null,
+  activeInputs: {},
   guidance: 'Choose a context, then trigger a degree or play the keyboard.',
 }
 
 function clearChord(state: StudyState): StudyState {
-  return { ...state, activeDegree: null, activeStudy: null, activeInput: null }
+  return { ...state, activeDegree: null, activeStudy: null, activeInputs: {} }
+}
+
+function latestActiveDegree(activeInputs: Record<string, StudyResult>): DegreeNum | null {
+  const activeChords = Object.values(activeInputs).filter((input): input is ChordResult => input.kind === 'chord')
+
+  return activeChords[activeChords.length - 1]?.degreeNum ?? null
+}
+
+function latestActiveStudy(activeInputs: Record<string, StudyResult>): StudyResult | null {
+  const inputs = Object.values(activeInputs)
+
+  return inputs[inputs.length - 1] ?? null
 }
 
 function reducer(state: StudyState, action: StudyAction): StudyState {
@@ -37,12 +53,19 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
       return clearChord({ ...state, root: action.root })
     case 'setTonality':
       return clearChord({ ...state, tonality: action.tonality })
+    case 'toggleAutoChords':
+      return { ...state, autoChordsEnabled: !state.autoChordsEnabled }
     case 'triggerChord':
-      return { ...state, activeDegree: action.degree, activeStudy: action.chord, activeInput: action.chord, guidance: null }
+      return { ...state, activeDegree: action.degree, activeStudy: action.chord, activeInputs: { ...state.activeInputs, [action.triggerId]: action.chord }, guidance: null }
     case 'triggerKeyboardTone':
-      return { ...state, activeDegree: null, activeStudy: action.tone, activeInput: action.tone, guidance: null }
-    case 'releaseActiveInput':
-      return { ...state, activeDegree: null, activeInput: null }
+      return { ...state, activeDegree: latestActiveDegree(state.activeInputs), activeStudy: action.tone, activeInputs: { ...state.activeInputs, [action.triggerId]: action.tone }, guidance: null }
+    case 'releaseHeldInput': {
+      const { [action.triggerId]: _releasedInput, ...activeInputs } = state.activeInputs
+
+      return { ...state, activeDegree: latestActiveDegree(activeInputs), activeStudy: latestActiveStudy(activeInputs) ?? state.activeStudy, activeInputs }
+    }
+    case 'releaseAllInputs':
+      return { ...state, activeDegree: null, activeInputs: {} }
     case 'setGuidance':
       return { ...state, guidance: action.guidance }
   }

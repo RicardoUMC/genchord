@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { initAudio, releaseVoicing, startVoicing } from './audio'
+import { useEffect, useState } from 'react'
+import { initAudio, installAudioWarmup, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
 import type { ChordResult, DegreeNum, NoteName, Tonality, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, useStudyState } from './ui'
@@ -11,39 +11,89 @@ export default function App() {
 
   const warmAudio = () => {
     void initAudio().catch(() => {
-      setAudioError('Audio could not start, but visual study mode still works.')
+      setAudioError('Audio unavailable; visual mode still works.')
     })
   }
 
-  const triggerChord = (degree: DegreeNum, chord: ChordResult) => {
-    dispatch({ type: 'triggerChord', degree, chord })
-    void startVoicing({ voicing: chord.voicing }).catch(() => {
-      setAudioError('Audio could not start, but visual study mode still works.')
-    })
-  }
+  useEffect(() => {
+    const uninstallAudioWarmup = installAudioWarmup()
+    const stopHeldInputs = () => {
+      releaseAllVoicings()
+      dispatch({ type: 'releaseAllInputs' })
+    }
 
-  const triggerKeyboardTone = (note: VoicedNote) => {
-    const tone = resolveKeyboardTone(note)
-    dispatch({ type: 'triggerKeyboardTone', tone })
-    void startVoicing({ voicing: tone.voicing }).catch(() => {
-      setAudioError('Audio could not start, but visual study mode still works.')
-    })
-  }
+    window.addEventListener('blur', stopHeldInputs)
 
-  const releaseActiveVoicing = () => {
-    releaseVoicing()
-    dispatch({ type: 'releaseActiveInput' })
-  }
+    return () => {
+      uninstallAudioWarmup()
+      window.removeEventListener('blur', stopHeldInputs)
+    }
+  }, [dispatch])
 
-  const triggerKeyboardKey = (key: VoicedNote) => {
-    const degree = activeKey ? findDiatonicDegreeForNote(activeKey, key.note) : null
+  useEffect(() => {
+    const toggleAutoChords = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      const isEditableTarget = target?.isContentEditable || target?.tagName === 'INPUT' || target?.tagName === 'SELECT' || target?.tagName === 'TEXTAREA'
 
-    if (activeKey && degree) {
-      triggerChord(degree, resolveVisibleKeyboardTriad(activeKey, degree, key.octave))
+      if (event.code !== 'KeyA' || event.repeat || isEditableTarget) {
+        return
+      }
+
+      event.preventDefault()
+      dispatch({ type: 'toggleAutoChords' })
+    }
+
+    window.addEventListener('keydown', toggleAutoChords)
+
+    return () => {
+      window.removeEventListener('keydown', toggleAutoChords)
+    }
+  }, [dispatch])
+
+  const triggerChord = (triggerId: string, degree: DegreeNum, chord: ChordResult) => {
+    if (!state.autoChordsEnabled) {
+      triggerKeyboardTone(triggerId, chord.generatorNote)
       return
     }
 
-    triggerKeyboardTone(key)
+    dispatch({ type: 'triggerChord', triggerId, degree, chord })
+    void startVoicing({ triggerId, voicing: chord.voicing }).catch(() => {
+      setAudioError('Audio unavailable; visual mode still works.')
+    })
+  }
+
+  const triggerKeyboardTone = (triggerId: string, note: VoicedNote) => {
+    const tone = resolveKeyboardTone(note)
+    dispatch({ type: 'triggerKeyboardTone', triggerId, tone })
+    void startVoicing({ triggerId, voicing: tone.voicing }).catch(() => {
+      setAudioError('Audio unavailable; visual mode still works.')
+    })
+  }
+
+  const releaseHeldVoicing = (triggerId: string) => {
+    releaseVoicing(triggerId)
+    dispatch({ type: 'releaseHeldInput', triggerId })
+  }
+
+  const changeRoot = (root: NoteName) => {
+    releaseAllVoicings()
+    dispatch({ type: 'setRoot', root })
+  }
+
+  const changeTonality = (tonality: Tonality) => {
+    releaseAllVoicings()
+    dispatch({ type: 'setTonality', tonality })
+  }
+
+  const triggerKeyboardKey = (triggerId: string, key: VoicedNote) => {
+    const degree = activeKey ? findDiatonicDegreeForNote(activeKey, key.note) : null
+
+    if (activeKey && degree && state.autoChordsEnabled) {
+      triggerChord(triggerId, degree, resolveVisibleKeyboardTriad(activeKey, degree, key.octave))
+      return
+    }
+
+    triggerKeyboardTone(triggerId, key)
   }
 
   return (
@@ -56,28 +106,34 @@ export default function App() {
         </div>
       </section>
 
-      <section className="instrument-stage" aria-labelledby="instrument-heading">
-        <div className="instrument-heading">
-          <p className="eyebrow">Instrument</p>
-          <h2 id="instrument-heading">Keyboard workspace</h2>
-          <p className="helper">Active highlights show only the triggered voicing or single key, not every matching pitch class.</p>
+      <section className="instrument-stage" aria-labelledby="chord-display-heading">
+        <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
+        <div className="instrument-status-slot">
+          {audioError ? <p className="audio-error" role="alert">{audioError}</p> : <span aria-hidden="true" />}
         </div>
-        <KeyboardViz activeInput={state.activeInput} guidance={state.guidance} scaleNotes={scaleNotes} onStartKey={triggerKeyboardKey} onStopKey={releaseActiveVoicing} />
+        <KeyboardViz activeInputs={Object.values(state.activeInputs)} guidance={state.guidance} scaleNotes={scaleNotes} onStartKey={triggerKeyboardKey} onStopKey={releaseHeldVoicing} />
       </section>
 
       <div className="control-grid" aria-label="Sound and study configuration">
         <KeySelector
           root={state.root}
           tonality={state.tonality}
-          onRootChange={(root: NoteName) => dispatch({ type: 'setRoot', root })}
-          onTonalityChange={(tonality: Tonality) => dispatch({ type: 'setTonality', tonality })}
+          onRootChange={changeRoot}
+          onTonalityChange={changeTonality}
           onInteract={warmAudio}
         />
-        <DegreeButtons activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseActiveVoicing} />
-        <ChordDisplay activeKey={activeKey} result={state.activeStudy} />
+        <DegreeButtons activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseHeldVoicing} />
+        <section className="panel" aria-labelledby="auto-chords-heading">
+          <div>
+            <p className="eyebrow">Playback</p>
+            <h2 id="auto-chords-heading">Automatic chords</h2>
+          </div>
+          <button type="button" className="auto-chords-toggle" aria-pressed={state.autoChordsEnabled} onClick={() => dispatch({ type: 'toggleAutoChords' })}>
+            Auto chords: {state.autoChordsEnabled ? 'On' : 'Off'}
+          </button>
+          <p className="helper">Shortcut: A. When off, degree buttons, degree shortcuts, and keyboard keys play only the selected note.</p>
+        </section>
       </div>
-
-      {audioError && <p className="audio-error" role="status">{audioError}</p>}
     </main>
   )
 }

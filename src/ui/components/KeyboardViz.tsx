@@ -67,37 +67,39 @@ function blackKeyStyle(note: NoteName): CSSProperties {
 }
 
 interface KeyboardVizProps {
-  activeInput: StudyResult | null
+  activeInputs: StudyResult[]
   guidance: string | null
   scaleNotes: NoteName[] | null
-  onStartKey: (key: VoicedNote) => void
-  onStopKey: () => void
+  onStartKey: (triggerId: string, key: VoicedNote) => void
+  onStopKey: (triggerId: string) => void
 }
 
-export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onStopKey }: KeyboardVizProps) {
-  const activeVoicing = new Set((activeInput?.voicing ?? []).map(voicedKeyId))
-  const generatorKey = activeInput ? voicedKeyId(activeInput.generatorNote) : null
+export function KeyboardViz({ activeInputs, guidance, scaleNotes, onStartKey, onStopKey }: KeyboardVizProps) {
+  const activeVoicing = new Set(activeInputs.flatMap((activeInput) => activeInput.voicing.map(voicedKeyId)))
+  const generatorKeys = new Set(activeInputs.map((activeInput) => voicedKeyId(activeInput.generatorNote)))
   const inScaleNotes = scaleNotes ? enharmonicSet(scaleNotes) : null
-  const activePointerIdRef = useRef<number | null>(null)
-  const activePointerKeyIdRef = useRef<string | null>(null)
+  const activePointersRef = useRef(new Map<number, { keyId: string | null; triggerId: string | null }>())
+  const onStopKeyRef = useRef(onStopKey)
+  const suppressNextClickRef = useRef(false)
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clickTriggerRef = useRef<string | null>(null)
 
-  const clearActivePointer = useCallback(() => {
-    activePointerIdRef.current = null
-    activePointerKeyIdRef.current = null
+  onStopKeyRef.current = onStopKey
+
+  const stopPointerPlayback = useCallback((pointerId: number) => {
+    const activePointer = activePointersRef.current.get(pointerId)
+    const triggerId = activePointer?.triggerId
+
+    activePointersRef.current.delete(pointerId)
+
+    if (triggerId) {
+      onStopKeyRef.current(triggerId)
+    }
   }, [])
 
-  const stopPointerPlayback = useCallback(() => {
-    clearActivePointer()
-    onStopKey()
-  }, [clearActivePointer, onStopKey])
-
   useEffect(() => {
-    const stopActivePointer = () => {
-      if (activePointerIdRef.current === null) {
-        return
-      }
-
-      stopPointerPlayback()
+    const stopActivePointer = (event: globalThis.PointerEvent) => {
+      stopPointerPlayback(event.pointerId)
     }
 
     window.addEventListener('pointerup', stopActivePointer)
@@ -106,40 +108,100 @@ export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onS
     return () => {
       window.removeEventListener('pointerup', stopActivePointer)
       window.removeEventListener('pointercancel', stopActivePointer)
+
+      for (const { triggerId } of activePointersRef.current.values()) {
+        if (triggerId) {
+          onStopKeyRef.current(triggerId)
+        }
+      }
+
+      activePointersRef.current.clear()
+
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current)
+        clickTimeoutRef.current = null
+      }
+
+      if (clickTriggerRef.current) {
+        onStopKeyRef.current(clickTriggerRef.current)
+        clickTriggerRef.current = null
+      }
     }
   }, [stopPointerPlayback])
 
   function startPointerKey(event: PointerEvent<HTMLButtonElement>, key: PianoKey, keyId: string) {
-    activePointerIdRef.current = event.pointerId
-    activePointerKeyIdRef.current = keyId
-    onStartKey({ note: key.note, octave: key.octave })
+    const triggerId = `keyboard:pointer:${event.pointerId}:${keyId}`
+
+    suppressNextClickRef.current = true
+    stopPointerPlayback(event.pointerId)
+    activePointersRef.current.set(event.pointerId, { keyId, triggerId })
+    onStartKey(triggerId, { note: key.note, octave: key.octave })
+  }
+
+  function activateClickedKey(key: PianoKey, keyId: string) {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false
+      return
+    }
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current)
+      clickTimeoutRef.current = null
+    }
+
+    if (clickTriggerRef.current) {
+      onStopKey(clickTriggerRef.current)
+      clickTriggerRef.current = null
+    }
+
+    const triggerId = `keyboard:click:${keyId}`
+    clickTriggerRef.current = triggerId
+    onStartKey(triggerId, { note: key.note, octave: key.octave })
+
+    clickTimeoutRef.current = setTimeout(() => {
+      clickTimeoutRef.current = null
+      clickTriggerRef.current = null
+      onStopKey(triggerId)
+    }, 350)
   }
 
   function enterPointerKey(event: PointerEvent<HTMLButtonElement>, key: PianoKey, keyId: string) {
-    if (activePointerIdRef.current !== event.pointerId || event.buttons === 0 || activePointerKeyIdRef.current === keyId) {
+    const activePointer = activePointersRef.current.get(event.pointerId)
+
+    if (!activePointer || event.buttons === 0 || activePointer.keyId === keyId) {
       return
     }
 
-    activePointerKeyIdRef.current = keyId
-    onStartKey({ note: key.note, octave: key.octave })
+    if (activePointer.triggerId) {
+      onStopKeyRef.current(activePointer.triggerId)
+    }
+
+    const triggerId = `keyboard:pointer:${event.pointerId}:${keyId}`
+    activePointersRef.current.set(event.pointerId, { keyId, triggerId })
+    onStartKey(triggerId, { note: key.note, octave: key.octave })
   }
 
   function leavePointerKey(event: PointerEvent<HTMLButtonElement>, keyId: string) {
-    if (activePointerIdRef.current !== event.pointerId) {
+    const activePointer = activePointersRef.current.get(event.pointerId)
+
+    if (!activePointer) {
       return
     }
 
-    if (activePointerKeyIdRef.current === keyId) {
-      activePointerKeyIdRef.current = null
+    if (activePointer.keyId === keyId) {
+      activePointer.keyId = null
     }
 
-    onStopKey()
+    if (activePointer.triggerId) {
+      onStopKeyRef.current(activePointer.triggerId)
+      activePointer.triggerId = null
+    }
   }
 
   function renderKey(key: PianoKey) {
     const keyId = `${key.note}${key.octave}`
     const active = activeVoicing.has(keyId)
-    const generator = generatorKey === keyId
+    const generator = generatorKeys.has(keyId)
     const outOfScale = inScaleNotes !== null && !inScaleNotes.has(key.note)
 
     return (
@@ -152,9 +214,10 @@ export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onS
         data-testid={generator ? 'generator-piano-key' : active ? 'active-piano-key' : undefined}
         onPointerDown={(event) => startPointerKey(event, key, keyId)}
         onPointerEnter={(event) => enterPointerKey(event, key, keyId)}
-        onPointerUp={stopPointerPlayback}
+        onPointerUp={(event) => stopPointerPlayback(event.pointerId)}
         onPointerLeave={(event) => leavePointerKey(event, keyId)}
-        onPointerCancel={stopPointerPlayback}
+        onPointerCancel={(event) => stopPointerPlayback(event.pointerId)}
+        onClick={() => activateClickedKey(key, keyId)}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') {
             return
@@ -162,13 +225,13 @@ export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onS
 
           event.preventDefault()
           if (!event.repeat) {
-            onStartKey({ note: key.note, octave: key.octave })
+            onStartKey(`keyboard:key:${keyId}`, { note: key.note, octave: key.octave })
           }
         }}
         onKeyUp={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault()
-            onStopKey()
+            onStopKey(`keyboard:key:${keyId}`)
           }
         }}
         aria-label={`${key.note}${key.octave}${generator ? ' generator note' : active ? ' chord tone' : ''}${active ? ' pressed' : ''}`}
@@ -180,11 +243,7 @@ export function KeyboardViz({ activeInput, guidance, scaleNotes, onStartKey, onS
   }
 
   return (
-    <section className="keyboard-panel" aria-labelledby="keyboard-heading">
-      <div>
-        <p className="eyebrow">Keyboard</p>
-        <h2 id="keyboard-heading">Exact voicing C3-C6</h2>
-      </div>
+    <section className="keyboard-panel" aria-label="Keyboard workspace">
       <div className="keyboard" role="group" aria-label="Playable piano keyboard from C3 to C6">
         {keyboardRegisters.map((register) => (
           <div className="keyboard-register" role="group" aria-label={registerLabel(register)} key={registerLabel(register)}>

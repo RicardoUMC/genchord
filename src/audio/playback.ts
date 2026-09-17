@@ -1,5 +1,5 @@
 import * as Tone from 'tone'
-import type { PlaybackEvent } from '../music-core'
+import type { PlaybackEvent, SustainedPlaybackEvent } from '../music-core'
 
 type PlaybackInstrument = {
   dispose: () => unknown
@@ -30,10 +30,12 @@ let synth: Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> | undefined
 let sampler: Tone.Sampler | undefined
 let samplerUnavailable = false
 let initPromise: Promise<void> | undefined
-let activeNotes: string[] = []
-let soundingNotes: string[] = []
-let soundingInstrument: PlaybackInstrument | undefined
-let voicingRequestId = 0
+let audioStarted = false
+let warmupCleanup: (() => void) | undefined
+type SustainedTrigger = { notes: string[]; instrument?: PlaybackInstrument }
+
+let sustainedTriggers = new Map<string, SustainedTrigger>()
+let noteOwners = new Map<PlaybackInstrument, Map<string, Set<string>>>()
 
 function getSynth() {
   synth ??= new Tone.PolySynth(Tone.Synth, {
@@ -82,13 +84,65 @@ function getInstrument(): PlaybackInstrument {
   return getSynth()
 }
 
+function isAudioRunning() {
+  return Tone.context.state === 'running'
+}
+
 export async function initAudio(): Promise<void> {
-  initPromise ??= Tone.start().then(() => {
+  if (isAudioRunning()) {
+    audioStarted = true
     getSynth()
     getSampler()
+    return
+  }
+
+  audioStarted = false
+
+  initPromise ??= Tone.start().then(() => {
+    initPromise = undefined
+    audioStarted = isAudioRunning()
+    getSynth()
+    getSampler()
+  }).catch((error: unknown) => {
+    initPromise = undefined
+    throw error
   })
 
   return initPromise
+}
+
+export function installAudioWarmup(target: Window = window): () => void {
+  if (warmupCleanup) {
+    return warmupCleanup
+  }
+
+  const warmAudio = () => {
+    if (isAudioRunning()) {
+      warmupCleanup?.()
+      return
+    }
+
+    void initAudio().then(() => {
+      if (isAudioRunning()) {
+        warmupCleanup?.()
+      }
+    }).catch(() => {
+      // Keep listeners installed so the next valid user activation can retry.
+    })
+  }
+
+  target.addEventListener('pointerup', warmAudio)
+  target.addEventListener('click', warmAudio)
+  target.addEventListener('keydown', warmAudio)
+
+  warmupCleanup = () => {
+    target.removeEventListener('pointerup', warmAudio)
+    target.removeEventListener('click', warmAudio)
+    target.removeEventListener('keydown', warmAudio)
+    warmupCleanup = undefined
+  }
+
+  return warmupCleanup
 }
 
 export async function playVoicing(event: PlaybackEvent): Promise<void> {
@@ -97,59 +151,91 @@ export async function playVoicing(event: PlaybackEvent): Promise<void> {
   getInstrument().triggerAttackRelease(notes, '2n', Tone.now())
 }
 
-export async function startVoicing(event: PlaybackEvent): Promise<void> {
-  const requestId = voicingRequestId + 1
-  voicingRequestId = requestId
+export async function startVoicing(event: SustainedPlaybackEvent): Promise<void> {
+  releaseVoicing(event.triggerId)
+
   const notes = event.voicing.map(({ note, octave }) => `${note}${octave}`)
-
-  if (soundingInstrument && soundingNotes.length > 0) {
-    soundingInstrument.triggerRelease(soundingNotes, Tone.now())
-    soundingNotes = []
-    soundingInstrument = undefined
-  }
-
-  activeNotes = notes
+  const pendingTrigger: SustainedTrigger = { notes }
+  sustainedTriggers.set(event.triggerId, pendingTrigger)
 
   await initAudio()
 
-  if (requestId !== voicingRequestId || activeNotes.length === 0) {
+  if (sustainedTriggers.get(event.triggerId) !== pendingTrigger) {
     return
   }
 
   const now = Tone.now()
   const instrument = getInstrument()
+  const instrumentOwners = noteOwners.get(instrument) ?? new Map<string, Set<string>>()
+  const notesToAttack = notes.filter((note) => !instrumentOwners.has(note))
 
-  if (soundingNotes.length > 0) {
-    instrument.triggerRelease(soundingNotes, now)
+  for (const note of notes) {
+    const owners = instrumentOwners.get(note) ?? new Set<string>()
+    owners.add(event.triggerId)
+    instrumentOwners.set(note, owners)
   }
 
-  soundingNotes = notes
-  soundingInstrument = instrument
-  instrument.triggerAttack(notes, now)
+  noteOwners.set(instrument, instrumentOwners)
+  pendingTrigger.instrument = instrument
+
+  if (notesToAttack.length > 0) {
+    instrument.triggerAttack(notesToAttack, now)
+  }
 }
 
-export function releaseVoicing(): void {
-  voicingRequestId += 1
+export function releaseVoicing(triggerId: string): void {
+  const trigger = sustainedTriggers.get(triggerId)
+
+  if (!trigger) {
+    return
+  }
+
+  sustainedTriggers.delete(triggerId)
+
+  if (!trigger.instrument) {
+    return
+  }
+
+  const notesToRelease = new Set<string>()
+  const instrumentOwners = noteOwners.get(trigger.instrument)
+
+  for (const note of trigger.notes) {
+    const owners = instrumentOwners?.get(note)
+
+    if (!owners) {
+      continue
+    }
+
+    owners.delete(triggerId)
+
+    if (owners.size === 0) {
+      instrumentOwners?.delete(note)
+      notesToRelease.add(note)
+    }
+  }
+
+  if (instrumentOwners?.size === 0) {
+    noteOwners.delete(trigger.instrument)
+  }
 
   if (!synth && !sampler) {
-    activeNotes = []
-    soundingNotes = []
-    soundingInstrument = undefined
     return
   }
 
-  const notesToRelease = soundingNotes.length > 0 ? soundingNotes : activeNotes
-
-  if (notesToRelease.length === 0) {
+  if (notesToRelease.size === 0) {
     return
   }
 
-  const instrument = soundingInstrument ?? getInstrument()
+  trigger.instrument.triggerRelease([...notesToRelease], Tone.now())
+}
 
-  instrument.triggerRelease(notesToRelease, Tone.now())
-  activeNotes = []
-  soundingNotes = []
-  soundingInstrument = undefined
+export function releaseAllVoicings(): void {
+  for (const triggerId of [...sustainedTriggers.keys()]) {
+    releaseVoicing(triggerId)
+  }
+
+  sustainedTriggers = new Map()
+  noteOwners = new Map()
 }
 
 export function disposeAudio(): void {
@@ -159,8 +245,8 @@ export function disposeAudio(): void {
   sampler = undefined
   samplerUnavailable = false
   initPromise = undefined
-  activeNotes = []
-  soundingNotes = []
-  soundingInstrument = undefined
-  voicingRequestId = 0
+  audioStarted = false
+  warmupCleanup?.()
+  sustainedTriggers = new Map()
+  noteOwners = new Map()
 }

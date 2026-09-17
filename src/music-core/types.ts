@@ -51,3 +51,7 @@ export interface VoicedNote {
 export interface PlaybackEvent {
   voicing: VoicedNote[]
 }
+
+export interface SustainedPlaybackEvent extends PlaybackEvent {
+  triggerId: string
+}

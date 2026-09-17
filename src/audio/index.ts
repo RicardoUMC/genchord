@@ -1,1 +1,1 @@
-export { disposeAudio, initAudio, playVoicing, releaseVoicing, startVoicing } from './playback'
+export { disposeAudio, initAudio, installAudioWarmup, playVoicing, releaseAllVoicings, releaseVoicing, startVoicing } from './playback'

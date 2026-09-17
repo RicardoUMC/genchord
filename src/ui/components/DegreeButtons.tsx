@@ -21,11 +21,17 @@ const keyboardDegreeByCode = new Map<string, DegreeNum>([
   ['KeyU', 7],
 ])
 
+function isEditableTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null
+
+  return element?.isContentEditable || element?.tagName === 'INPUT' || element?.tagName === 'SELECT' || element?.tagName === 'TEXTAREA'
+}
+
 interface DegreeButtonsProps {
   activeKey: Key | null
   activeDegree: DegreeNum | null
-  onStart: (degree: DegreeNum, chord: ChordResult) => void
-  onStop: () => void
+  onStart: (triggerId: string, degree: DegreeNum, chord: ChordResult) => void
+  onStop: (triggerId: string) => void
 }
 
 export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: DegreeButtonsProps) {
@@ -38,18 +44,18 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
   onStartRef.current = onStart
   onStopRef.current = onStop
 
-  const startDegree = (degree: DegreeNum, key = activeKeyRef.current) => {
+  const startDegree = (triggerId: string, degree: DegreeNum, key = activeKeyRef.current) => {
     if (!key) {
       return
     }
 
-    onStartRef.current(degree, resolveDiatonicTriad(key, degree))
+    onStartRef.current(triggerId, degree, resolveDiatonicTriad(key, degree))
   }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const degree = keyboardDegreeByCode.get(event.code)
-      if (!degree) {
+      if (!degree || isEditableTarget(event.target)) {
         return
       }
 
@@ -59,7 +65,7 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
       }
 
       pressedShortcutCodes.current.add(event.code)
-      startDegree(degree, activeKeyRef.current)
+      startDegree(`degree:shortcut:${event.code}`, degree, activeKeyRef.current)
     }
 
     const onKeyUp = (event: KeyboardEvent) => {
@@ -68,16 +74,28 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
         return
       }
 
+      const wasPressedShortcut = pressedShortcutCodes.current.delete(event.code)
+      if (!wasPressedShortcut && isEditableTarget(event.target)) {
+        return
+      }
+
       event.preventDefault()
-      pressedShortcutCodes.current.delete(event.code)
-      onStopRef.current()
+      if (wasPressedShortcut) {
+        onStopRef.current(`degree:shortcut:${event.code}`)
+      }
+    }
+
+    const onWindowBlur = () => {
+      pressedShortcutCodes.current.clear()
     }
 
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
+    window.addEventListener('blur', onWindowBlur)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', onWindowBlur)
     }
   }, [])
 
@@ -88,9 +106,11 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
 
     event.preventDefault()
     if (!event.repeat) {
-      startDegree(degree)
+      startDegree(`degree:button-key:${degree}`, degree)
     }
   }
+
+  const pointerTriggerId = (degree: DegreeNum) => `degree:pointer:${degree}`
 
   return (
     <section className="panel" aria-labelledby="degree-heading">
@@ -109,15 +129,18 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
               type="button"
               className={activeDegree === degree ? 'is-active' : ''}
               disabled={!activeKey}
-              onPointerDown={() => startDegree(degree)}
-              onPointerUp={onStop}
-              onPointerLeave={onStop}
-              onPointerCancel={onStop}
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture?.(event.pointerId)
+                startDegree(pointerTriggerId(degree), degree)
+              }}
+              onPointerUp={() => onStop(pointerTriggerId(degree))}
+              onPointerLeave={() => onStop(pointerTriggerId(degree))}
+              onPointerCancel={() => onStop(pointerTriggerId(degree))}
               onKeyDown={(event) => startButtonFromKeyboard(event, degree)}
               onKeyUp={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault()
-                  onStop()
+                  onStop(`degree:button-key:${degree}`)
                 }
               }}
             >
