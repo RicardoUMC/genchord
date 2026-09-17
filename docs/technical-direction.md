@@ -26,7 +26,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 
 - `music-core` es una frontera pura sin React, DOM ni audio.
 - La teoria inicial cubre 12 raices mayores y 12 menores naturales para triadas diatonicas.
-- El audio usa Tone.js `PolySynth`, arranca con `Tone.start()` desde gestos de usuario, recibe eventos musicales ya resueltos —voicings completos o una sola nota del teclado— y sostiene notas con `triggerAttack` hasta recibir una liberacion explicita de la UI.
+- Audio uses Tone.js through an audio adapter: `Tone.start()` still runs from explicit user gestures, a lightweight `Tone.Sampler` piano is preferred once samples load, and the existing `PolySynth` remains the fallback when samples are unavailable or not ready.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
 
 ## Arquitectura sugerida
