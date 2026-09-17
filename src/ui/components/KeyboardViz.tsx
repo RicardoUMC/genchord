@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { CSSProperties, PointerEvent } from 'react'
 import type { NoteName, StudyResult, VoicedNote } from '../../music-core'
 
 interface PianoKey {
@@ -75,6 +76,63 @@ interface KeyboardVizProps {
 export function KeyboardViz({ activeInput, guidance, onStartKey, onStopKey }: KeyboardVizProps) {
   const activeVoicing = new Set((activeInput?.voicing ?? []).map(voicedKeyId))
   const generatorKey = activeInput ? voicedKeyId(activeInput.generatorNote) : null
+  const activePointerIdRef = useRef<number | null>(null)
+  const activePointerKeyIdRef = useRef<string | null>(null)
+
+  const clearActivePointer = useCallback(() => {
+    activePointerIdRef.current = null
+    activePointerKeyIdRef.current = null
+  }, [])
+
+  const stopPointerPlayback = useCallback(() => {
+    clearActivePointer()
+    onStopKey()
+  }, [clearActivePointer, onStopKey])
+
+  useEffect(() => {
+    const stopActivePointer = () => {
+      if (activePointerIdRef.current === null) {
+        return
+      }
+
+      stopPointerPlayback()
+    }
+
+    window.addEventListener('pointerup', stopActivePointer)
+    window.addEventListener('pointercancel', stopActivePointer)
+
+    return () => {
+      window.removeEventListener('pointerup', stopActivePointer)
+      window.removeEventListener('pointercancel', stopActivePointer)
+    }
+  }, [stopPointerPlayback])
+
+  function startPointerKey(event: PointerEvent<HTMLButtonElement>, key: PianoKey, keyId: string) {
+    activePointerIdRef.current = event.pointerId
+    activePointerKeyIdRef.current = keyId
+    onStartKey({ note: key.note, octave: key.octave })
+  }
+
+  function enterPointerKey(event: PointerEvent<HTMLButtonElement>, key: PianoKey, keyId: string) {
+    if (activePointerIdRef.current !== event.pointerId || event.buttons === 0 || activePointerKeyIdRef.current === keyId) {
+      return
+    }
+
+    activePointerKeyIdRef.current = keyId
+    onStartKey({ note: key.note, octave: key.octave })
+  }
+
+  function leavePointerKey(event: PointerEvent<HTMLButtonElement>, keyId: string) {
+    if (activePointerIdRef.current !== event.pointerId) {
+      return
+    }
+
+    if (activePointerKeyIdRef.current === keyId) {
+      activePointerKeyIdRef.current = null
+    }
+
+    onStopKey()
+  }
 
   function renderKey(key: PianoKey) {
     const keyId = `${key.note}${key.octave}`
@@ -88,10 +146,11 @@ export function KeyboardViz({ activeInput, guidance, onStartKey, onStopKey }: Ke
         className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
         style={key.accidental ? blackKeyStyle(key.note) : undefined}
         data-testid={generator ? 'generator-piano-key' : active ? 'active-piano-key' : undefined}
-        onPointerDown={() => onStartKey({ note: key.note, octave: key.octave })}
-        onPointerUp={onStopKey}
-        onPointerLeave={onStopKey}
-        onPointerCancel={onStopKey}
+        onPointerDown={(event) => startPointerKey(event, key, keyId)}
+        onPointerEnter={(event) => enterPointerKey(event, key, keyId)}
+        onPointerUp={stopPointerPlayback}
+        onPointerLeave={(event) => leavePointerKey(event, keyId)}
+        onPointerCancel={stopPointerPlayback}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') {
             return

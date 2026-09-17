@@ -137,6 +137,32 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
   })
 
+  it('plays each visual keyboard key entered during an active pointer drag', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+    const d4 = within(keyboard).getByRole('button', { name: 'D4' })
+    const e4 = within(keyboard).getByRole('button', { name: 'E4' })
+
+    vi.clearAllMocks()
+    fireEvent.pointerEnter(e4, { pointerId: 1, buttons: 1 })
+    expect(startVoicing).not.toHaveBeenCalled()
+
+    fireEvent.pointerDown(d4, { pointerId: 1, buttons: 1 })
+    fireEvent.pointerEnter(e4, { pointerId: 1, buttons: 1 })
+
+    expect(startVoicing).toHaveBeenCalledTimes(2)
+    expect(startVoicing).toHaveBeenLastCalledWith({ voicing: [{ note: 'E', octave: 4 }, { note: 'G', octave: 4 }, { note: 'B', octave: 4 }] })
+    expect(screen.getByText('E minor')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'E4 generator note pressed' })).toBeInTheDocument()
+
+    fireEvent.pointerUp(screen.getByRole('button', { name: 'E4 generator note pressed' }), { pointerId: 1 })
+    expect(releaseVoicing).toHaveBeenCalledTimes(1)
+    expect(within(keyboard).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
+  })
+
   it('plays and highlights only an out-of-scale visual keyboard key', async () => {
     const user = userEvent.setup()
     render(<App />)
