@@ -4,13 +4,16 @@ GenChord es una herramienta web para estudiar acordes en teclado de forma rápid
 
 ## Estado actual
 
-Primer prototipo interactivo:
+Prototipo interactivo pulido:
 
 - Selección de tonalidad: raíz + modo mayor/menor natural.
 - Disparo de acordes por grados diatónicos.
-- Visualización del acorde: grado, nombre y notas.
-- Teclado visual con notas del acorde resaltadas.
-- Reproducción simple con Tone.js.
+- Visualización del acorde: grado, nombre, notas y nota generadora.
+- Teclado visual C3-C6 con notas exactas del voicing resaltadas.
+- Playback al arrastrar sobre teclas visuales: mantener presionado y cruzar teclas dispara cada nota/acorde contextual.
+- Atajos de teclado físico para grados: `1`-`7` y `Q`-`U`, con sonido sostenido mientras se mantiene la tecla.
+- Reproducción con Tone.js: sampler de piano cuando las muestras están listas y synth como fallback.
+- Deploy automático a GitHub Pages.
 - Tests para teoría musical, UI y adaptador de audio.
 
 ## Inicio rápido
@@ -35,6 +38,24 @@ http://localhost:5173/
 | `npm run typecheck` | Verifica tipos de TypeScript sin emitir archivos. |
 | `npm test` | Ejecuta la suite de tests con Vitest. |
 
+## Despliegue
+
+La versión publicada vive en:
+
+```txt
+https://ricardoumc.github.io/genchord/
+```
+
+GitHub Pages se despliega automáticamente con `.github/workflows/deploy-pages.yml` en cada push a `main` y también permite `workflow_dispatch` manual.
+
+Comando de build usado por el workflow:
+
+```bash
+npm run build
+```
+
+Vite usa `base: '/genchord/'` para que los assets resuelvan correctamente bajo GitHub Pages.
+
 ## Arquitectura
 
 El prototipo separa la aplicación en tres capas:
@@ -42,7 +63,7 @@ El prototipo separa la aplicación en tres capas:
 | Capa | Responsabilidad |
 |---|---|
 | `src/music-core` | Reglas musicales puras: tonalidades, grados y triadas diatónicas. |
-| `src/audio` | Reproducción de acordes con Tone.js. |
+| `src/audio` | Reproducción de acordes con Tone.js, sampler de piano y fallback synth. |
 | `src/ui` | Componentes React, estado de estudio y visualización. |
 
 La regla principal es simple: la teoría musical no debe depender de React, DOM ni Web Audio.

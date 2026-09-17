@@ -26,8 +26,22 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 
 - `music-core` es una frontera pura sin React, DOM ni audio.
 - La teoria inicial cubre 12 raices mayores y 12 menores naturales para triadas diatonicas.
-- Audio uses Tone.js through an audio adapter: `Tone.start()` still runs from explicit user gestures, a lightweight `Tone.Sampler` piano is preferred once samples load, and the existing `PolySynth` remains the fallback when samples are unavailable or not ready.
+- El audio usa Tone.js detras de un adaptador: `Tone.start()` corre desde gestos explicitos del usuario, un `Tone.Sampler` de piano se prefiere cuando las muestras estan listas y `PolySynth` queda como fallback si las muestras no estan disponibles o todavia no cargaron.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
+
+## Audio y muestras
+
+- El sampler de piano carga muestras Salamander desde `https://tonejs.github.io/audio/salamander/`.
+- Esa CDN es una dependencia externa de realismo sonoro; no debe bloquear el estudio si falla o tarda.
+- Mientras el sampler no este listo, o si queda marcado como no disponible, el adaptador reproduce con `Tone.PolySynth`.
+- La UI no debe conocer si suena sampler o synth: solo envia eventos musicales ya resueltos.
+
+## Despliegue
+
+- El sitio publico esta en `https://ricardoumc.github.io/genchord/`.
+- GitHub Pages se despliega desde `.github/workflows/deploy-pages.yml` en cada push a `main` y con disparo manual `workflow_dispatch`.
+- El workflow usa `npm ci` y `npm run build`; el build combina typecheck de TypeScript y salida Vite en `dist`.
+- `vite.config.ts` define `base: '/genchord/'` para que rutas y assets funcionen bajo GitHub Pages.
 
 ## Arquitectura sugerida
 

@@ -18,6 +18,12 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 | Octava / registro | Zona del teclado donde se ubica o dispara el acorde. |
 | Sistema de notacion | Como se muestran notas y grados: ingles CDE, latino Do Re Mi, sostenidos/bemoles, numeros romanos. |
 
+## Estado implementado del prototipo
+
+- El MVP trabaja con botones de grado y con teclas absolutas del piano visual C3-C6.
+- La notacion implementada es de nombres tipo CDE para notas, mas grados/numerales romanos para funcion armonica.
+- Las teclas visuales pueden resolver acordes contextuales o sonar como nota individual si no hay acorde diatonico aplicable.
+
 ## Flujo mental
 
 1. El usuario elige una tonalidad y una escala/modo.
@@ -45,8 +51,8 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 
 ## Preguntas abiertas
 
-- Que sistema de notacion se usa por defecto: CDE o Do Re Mi.
+- Resuelto para el MVP: el sistema de notacion por defecto es CDE; Do Re Mi queda como preferencia futura.
 - Si menor armonica, menor melodica o modos deben ser opciones configurables despues del MVP.
 - Como nombrar alteraciones segun tonalidad para evitar resultados teoricamente raros.
-- Si el primer MVP trabaja por grados, por teclas absolutas o permite ambos.
+- Resuelto para el MVP: permite ambos, con botones de grado y teclas absolutas del piano visual.
 - Que configuracion futura deberia controlar si el teclado visual prioriza nota individual, generacion de acorde contextual o comportamiento combinado.

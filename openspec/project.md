@@ -16,7 +16,7 @@ GenChord usa SDD en modo hibrido: los artefactos revisables viven en `openspec/`
 |---|---|
 | Identidad | `GenChord` como nombre de trabajo. |
 | Mision | Herramienta web de estudio para elegir contexto musical, disparar acordes desde notas/grados y ver/escuchar el resultado. |
-| MVP | Tonalidad mayor/menor, disparo de acordes, teclado visual, audio simple, inversiones y octava/registro. |
+| MVP | Prototipo interactivo con tonalidad mayor/menor natural, disparo por grados y teclas visuales, teclado C3-C6, audio con sampler/fallback y voicing automatico. |
 | Fuera de alcance inicial | No DAW, no reemplazo de practica tecnica, no libreria teorica generica para terceros. |
 
 ## Arquitectura
@@ -31,16 +31,16 @@ GenChord usa SDD en modo hibrido: los artefactos revisables viven en `openspec/`
 
 | Capability | Estado |
 |---|---|
-| App code | `false` |
-| `package.json` | `false` |
-| Test runner | `none` |
-| Test command | `none` |
+| App code | `true` |
+| `package.json` | `true` |
+| Test runner | `vitest` |
+| Test command | `npm test` |
 | Lint command | `none` |
-| Typecheck command | `none` |
+| Typecheck command | `npm run typecheck` |
 | Strict TDD | `false` |
 
-Motivo: todavia no hay codebase ni runner; activar TDD estricto despues de scaffold inicial.
+La codebase actual usa Vite + React + TypeScript, Tone.js y Vitest. El build de produccion se ejecuta con `npm run build` y el deploy a GitHub Pages corre desde push a `main`.
 
 ## Proximo paso
 
-Usar `/sdd-new` o `/sdd-ff` para definir el primer prototipo interactivo antes de fijar stack definitivo.
+Continuar evolucionando el prototipo desde evidencia real: inversiones, registro configurable, modos o voicings avanzados deben entrar como cambios acotados y testeables.

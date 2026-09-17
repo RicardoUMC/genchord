@@ -8,7 +8,7 @@ Play the active voicing as audible sound with fast response, triggered only by u
 
 ### Requirement: Voicing Sound on Trigger
 
-The system SHALL play all notes of the triggered voicing simultaneously as a simple synth sound (no piano-realistic sample required).
+The system SHALL play all notes of the triggered voicing simultaneously. It SHOULD use the piano sampler when samples are loaded and SHALL fall back to the synth when the sampler is unavailable or not ready.
 
 #### Scenario: Play chord on degree click
 
@@ -21,6 +21,21 @@ The system SHALL play all notes of the triggered voicing simultaneously as a sim
 - GIVEN AudioContext is initialized
 - WHEN the user triggers a visual keyboard note that does not resolve to a contextual chord
 - THEN that single note is heard within 50ms of the trigger
+
+#### Scenario: Use sampler when loaded
+
+- GIVEN AudioContext is initialized
+- AND the piano sampler has loaded successfully
+- WHEN the user triggers a voicing
+- THEN playback uses the sampler instrument
+
+#### Scenario: Fall back while sampler is unavailable or not ready
+
+- GIVEN AudioContext is initialized
+- AND the piano sampler is unavailable or has not finished loading
+- WHEN the user triggers a voicing
+- THEN playback uses the synth fallback
+- AND the visual study flow remains usable
 
 ### Requirement: AudioContext Initialization
 

@@ -19,11 +19,11 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 - Seleccionar tonalidad: nota raiz y mayor/menor.
 - Usar el teclado visual como superficie principal de estudio.
 - Tocar una tecla visual aunque no pertenezca al contexto: si puede resolver un acorde diatonico, dispara ese voicing; si no, suena y se resalta solo la nota individual.
-- Tocar una tecla fisica o grado y disparar el acorde correspondiente dentro del contexto.
+- Tocar una tecla fisica o grado y disparar el acorde correspondiente dentro del contexto. El prototipo combina botones de grado con teclas absolutas del piano visual para estudiar la misma armonia desde dos entradas.
 - Visualizar solo el voicing activo exacto en el teclado antes que tonos repetidos por todo el registro.
 - Escuchar el acorde con sonido simple y respuesta rapida mientras se mantiene presionado el grado, tecla fisica o tecla visual.
 - Usar voicings automaticos en posicion fundamental: los grados parten de C4 y las teclas visuales conservan el registro disparado; si el acorde excede C3-C6, se muestra y reproduce un voicing parcial con las notas disponibles.
-- Mostrar notacion basica segun preferencia: nombres de nota y/o grados.
+- Mostrar notacion basica en el modelo actual: nombres de nota tipo CDE, grados y numerales romanos segun calidad. Otras preferencias de notacion quedan para una etapa posterior.
 
 ## Jerarquia de experiencia
 
@@ -45,6 +45,13 @@ El teclado debe ser el elemento visual y funcional primario. Contexto, grados y 
 - No reemplazar clases, tecnica ni practica con metronomo.
 - No arrancar como libreria teorica generica para terceros.
 - No priorizar realismo de piano por encima de claridad pedagogica.
+
+## Decisiones resueltas en el prototipo
+
+| Pregunta | Estado actual |
+|----------|---------------|
+| Grados, teclas absolutas o ambos | Resuelto para el MVP: conviven botones de grado, atajos fisicos y piano visual absoluto. |
+| Notacion por defecto | Resuelto para el MVP: el modelo y la UI usan nombres tipo CDE, mas grados/numerales romanos. |
 
 ## Nombre
 
