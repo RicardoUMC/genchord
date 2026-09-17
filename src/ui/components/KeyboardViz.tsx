@@ -50,11 +50,11 @@ function voicedKeyId({ note, octave }: VoicedNote) {
 }
 
 const blackKeyLeftByNote: Partial<Record<NoteName, number>> = {
-  'C#': 0.68,
+  'C#': 0.72,
   'D#': 1.72,
-  'F#': 3.68,
+  'F#': 3.72,
   'G#': 4.72,
-  'A#': 5.76,
+  'A#': 5.72,
 }
 
 function blackKeyStyle(note: NoteName): CSSProperties {
