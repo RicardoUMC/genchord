@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: '/genchord/',
   plugins: [react()],
   test: {
     environment: 'jsdom',
