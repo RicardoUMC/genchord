@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 import type { NoteName, StudyResult, VoicedNote } from '../../music-core'
+import type { ScaleGuideStyle } from '../state'
 
 interface PianoKey {
   note: NoteName
@@ -70,11 +71,12 @@ interface KeyboardVizProps {
   activeInputs: StudyResult[]
   guidance: string | null
   scaleNotes: NoteName[] | null
+  scaleGuideStyle: ScaleGuideStyle
   onStartKey: (triggerId: string, key: VoicedNote) => void
   onStopKey: (triggerId: string) => void
 }
 
-export function KeyboardViz({ activeInputs, guidance, scaleNotes, onStartKey, onStopKey }: KeyboardVizProps) {
+export function KeyboardViz({ activeInputs, guidance, scaleNotes, scaleGuideStyle, onStartKey, onStopKey }: KeyboardVizProps) {
   const activeVoicing = new Set(activeInputs.flatMap((activeInput) => activeInput.voicing.map(voicedKeyId)))
   const generatorKeys = new Set(activeInputs.map((activeInput) => voicedKeyId(activeInput.generatorNote)))
   const inScaleNotes = scaleNotes ? enharmonicSet(scaleNotes) : null
@@ -203,12 +205,13 @@ export function KeyboardViz({ activeInputs, guidance, scaleNotes, onStartKey, on
     const active = activeVoicing.has(keyId)
     const generator = generatorKeys.has(keyId)
     const outOfScale = inScaleNotes !== null && !inScaleNotes.has(key.note)
+    const dimmedOutOfScale = scaleGuideStyle === 'dim' && outOfScale
 
     return (
       <button
         key={keyId}
         type="button"
-        className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${outOfScale ? 'is-out-of-scale' : ''} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
+        className={`piano-key ${key.accidental ? 'black-key' : 'white-key'} ${outOfScale ? 'is-out-of-scale' : ''} ${dimmedOutOfScale ? 'is-scale-dimmed' : ''} ${active ? 'is-active' : ''} ${generator ? 'is-generator' : ''}`}
         style={key.accidental ? blackKeyStyle(key.note) : undefined}
         data-scale-membership={outOfScale ? 'out' : inScaleNotes ? 'in' : undefined}
         data-testid={generator ? 'generator-piano-key' : active ? 'active-piano-key' : undefined}
@@ -244,7 +247,7 @@ export function KeyboardViz({ activeInputs, guidance, scaleNotes, onStartKey, on
 
   return (
     <section className="keyboard-panel" aria-label="Keyboard workspace">
-      <div className="keyboard" role="group" aria-label="Playable piano keyboard from C3 to C6">
+      <div className="keyboard" role="group" aria-label="Playable piano keyboard from C3 to C6" data-scale-guide-style={scaleGuideStyle}>
         {keyboardRegisters.map((register) => (
           <div className="keyboard-register" role="group" aria-label={registerLabel(register)} key={registerLabel(register)}>
             <div className="white-key-row">

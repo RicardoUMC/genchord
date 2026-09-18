@@ -83,8 +83,15 @@ describe('GenChord study UI', () => {
     const keyboard = screen.getByLabelText(/piano keyboard/i)
     const cSharp = within(keyboard).getByRole('button', { name: 'C#4' })
     const d = within(keyboard).getByRole('button', { name: 'D4' })
+    const scaleGuideStyle = screen.getByLabelText(/scale guide style/i)
+    const controls = screen.getByLabelText(/sound and study configuration/i)
 
-    expect(cSharp).toHaveClass('is-out-of-scale')
+    expect(keyboard).toHaveAttribute('data-scale-guide-style', 'dim')
+    expect(scaleGuideStyle).toHaveValue('dim')
+    expect(scaleGuideStyle.closest('.instrument-stage')).toContainElement(scaleGuideStyle)
+    expect(controls).not.toContainElement(scaleGuideStyle)
+    expect(scaleGuideStyle.compareDocumentPosition(keyboard)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(cSharp).toHaveClass('is-out-of-scale', 'is-scale-dimmed')
     expect(cSharp).toHaveAttribute('data-scale-membership', 'out')
     expect(cSharp).not.toBeDisabled()
     expect(d).not.toHaveClass('is-out-of-scale')
@@ -95,6 +102,26 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('Keyboard tone C#4')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C#', octave: 4 }] }))
     expect(screen.getByTestId('generator-piano-key')).toHaveClass('is-out-of-scale', 'is-generator')
+  })
+
+  it('switches scale guidance between dim and highlight styles', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+
+    const keyboard = screen.getByLabelText(/piano keyboard/i)
+    const scaleGuideStyle = screen.getByLabelText(/scale guide style/i)
+
+    expect(keyboard).toHaveAttribute('data-scale-guide-style', 'dim')
+
+    await user.selectOptions(scaleGuideStyle, 'highlight')
+
+    expect(scaleGuideStyle).toHaveValue('highlight')
+    expect(keyboard).toHaveAttribute('data-scale-guide-style', 'highlight')
+    expect(within(keyboard).getByRole('button', { name: 'D4' })).toHaveAttribute('data-scale-membership', 'in')
+    expect(within(keyboard).getByRole('button', { name: 'C#4' })).toHaveAttribute('data-scale-membership', 'out')
+    expect(within(keyboard).getByRole('button', { name: 'C#4' })).not.toHaveClass('is-scale-dimmed')
   })
 
   it('matches flat scale notes to sharp visual keyboard keys for scale guidance', async () => {

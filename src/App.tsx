@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { initAudio, installAudioWarmup, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
 import type { ChordResult, DegreeNum, NoteName, Tonality, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
+import type { ScaleGuideStyle } from './ui/state'
 import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, useStudyState } from './ui'
 
 export default function App() {
@@ -108,10 +109,22 @@ export default function App() {
 
       <section className="instrument-stage" aria-labelledby="chord-display-heading">
         <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
-        <div className="instrument-status-slot">
-          {audioError ? <p className="audio-error" role="alert">{audioError}</p> : <span aria-hidden="true" />}
+        <div className="instrument-toolbar">
+          <div className="instrument-status-slot">
+            {audioError ? <p className="audio-error" role="alert">{audioError}</p> : <span aria-hidden="true" />}
+          </div>
+          <label className="field scale-guide-field">
+            Scale guide style
+            <select
+              value={state.scaleGuideStyle}
+              onChange={(event) => dispatch({ type: 'setScaleGuideStyle', scaleGuideStyle: event.target.value as ScaleGuideStyle })}
+            >
+              <option value="dim">Dim out-of-scale keys</option>
+              <option value="highlight">Highlight in-scale keys</option>
+            </select>
+          </label>
         </div>
-        <KeyboardViz activeInputs={Object.values(state.activeInputs)} guidance={state.guidance} scaleNotes={scaleNotes} onStartKey={triggerKeyboardKey} onStopKey={releaseHeldVoicing} />
+        <KeyboardViz activeInputs={Object.values(state.activeInputs)} guidance={state.guidance} scaleNotes={scaleNotes} scaleGuideStyle={state.scaleGuideStyle} onStartKey={triggerKeyboardKey} onStopKey={releaseHeldVoicing} />
       </section>
 
       <div className="control-grid" aria-label="Sound and study configuration">

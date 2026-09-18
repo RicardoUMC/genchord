@@ -5,16 +5,20 @@ interface StudyState {
   root: NoteName | null
   tonality: Tonality | null
   autoChordsEnabled: boolean
+  scaleGuideStyle: ScaleGuideStyle
   activeDegree: DegreeNum | null
   activeStudy: StudyResult | null
   activeInputs: Record<string, StudyResult>
   guidance: string | null
 }
 
+export type ScaleGuideStyle = 'dim' | 'highlight'
+
 type StudyAction =
   | { type: 'setRoot'; root: NoteName }
   | { type: 'setTonality'; tonality: Tonality }
   | { type: 'toggleAutoChords' }
+  | { type: 'setScaleGuideStyle'; scaleGuideStyle: ScaleGuideStyle }
   | { type: 'triggerChord'; triggerId: string; degree: DegreeNum; chord: ChordResult }
   | { type: 'triggerKeyboardTone'; triggerId: string; tone: StudyResult }
   | { type: 'releaseHeldInput'; triggerId: string }
@@ -25,6 +29,7 @@ const initialState: StudyState = {
   root: null,
   tonality: null,
   autoChordsEnabled: true,
+  scaleGuideStyle: 'dim',
   activeDegree: null,
   activeStudy: null,
   activeInputs: {},
@@ -55,6 +60,8 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
       return clearChord({ ...state, tonality: action.tonality })
     case 'toggleAutoChords':
       return { ...state, autoChordsEnabled: !state.autoChordsEnabled }
+    case 'setScaleGuideStyle':
+      return { ...state, scaleGuideStyle: action.scaleGuideStyle }
     case 'triggerChord':
       return { ...state, activeDegree: action.degree, activeStudy: action.chord, activeInputs: { ...state.activeInputs, [action.triggerId]: action.chord }, guidance: null }
     case 'triggerKeyboardTone':
