@@ -34,13 +34,28 @@ El teclado debe ser el elemento visual y funcional primario. Contexto, grados y 
 
 ## Despues del MVP
 
-- Modos y escalas alternativas.
-- Variaciones de acordes: septimas, suspendidos, add, extensiones.
-- Voicings orientados a acompanamiento.
-- Controles explicitos de inversion, octava y registro.
-- Preferencias para decidir si el teclado visual siempre toca notas individuales, intenta generar acordes contextuales o combina ambos comportamientos.
-- Progresiones y ejercicios guiados.
-- Preferencias de notacion mas avanzadas.
+### 1. Modos y escalas alternativas (implementado)
+
+- Implementar los 7 modos diatónicos con doble nomenclatura: griego (Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian) + correspondencia práctica (Major, Natural Minor, etc.).
+- UI: selector único "Scale / Mode" conciso que reemplaza el toggle Major/Minor; 7 opciones en lista desplegable con nomenclatura combinada.
+- Criterio visual: mantener la estética actual (dropdowns oscuros con bordes ámbar sutiles), no sobre-simplificar ni complicar.
+
+### 2. Contexto musical (compañero del selector de modos)
+
+- Sección al pie de la página, debajo de todo el instrumento.
+- Para el modo seleccionado actualmente, mostrar:
+  - Breve explicación de qué es el modo y su carácter sonoro (ej: "Dorian es menor con sexta mayor; suena melancólico pero con esperanza").
+  - 2-4 ejemplos de canciones populares (rock/pop/indie/etc.) que usen explícitamente ese modo, no solo la escala subyacente.
+  - Progresiones sugeridas/populares que funcionan bien en ese modo (ej: i-IV en Dorian, I-IV en Mixolydian).
+- Título: **"Contexto musical"**.
+- Debe sentirse como material de referencia complementario, no como un manual académico.
+
+### 3. Variaciones de acordes: septimas, suspendidos, add, extensiones.
+### 4. Voicings orientados a acompanamiento.
+### 5. Controles explicitos de inversion, octava y registro.
+### 6. Preferencias para decidir si el teclado visual siempre toca notas individuales, intenta generar acordes contextuales o combina ambos comportamientos.
+### 7. Progresiones y ejercicios guiados.
+### 8. Preferencias de notacion mas avanzadas.
 
 ## No objetivos iniciales
 

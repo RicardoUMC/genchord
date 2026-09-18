@@ -1,4 +1,18 @@
-import { noteNames, voicingNames, type Key, type StudyResult } from '../../music-core'
+import { noteNames, voicingNames, type Key, type Mode, type StudyResult } from '../../music-core'
+
+const modeDisplayNames: Record<Mode, string> = {
+  ionian: 'Major',
+  dorian: 'Dorian',
+  phrygian: 'Phrygian',
+  lydian: 'Lydian',
+  mixolydian: 'Mixolydian',
+  aeolian: 'Natural Minor',
+  locrian: 'Locrian',
+}
+
+function keyDisplayName(key: Key): string {
+  return `${key.root} ${modeDisplayNames[key.mode]}`
+}
 
 interface ChordDisplayProps {
   activeKey: Key | null
@@ -12,7 +26,7 @@ export function ChordDisplay({ activeKey, result, autoChordsEnabled }: ChordDisp
       <div className="study-summary">
         <div>
           <p className="eyebrow">Now studying</p>
-          <h2 id="chord-display-heading">{activeKey ? `${activeKey.root} ${activeKey.tonality}` : 'No key selected'}</h2>
+          <h2 id="chord-display-heading">{activeKey ? keyDisplayName(activeKey) : 'No key selected'}</h2>
         </div>
         <div className="study-pills" aria-label="Study status">
           <span>{autoChordsEnabled ? 'Auto chords on' : 'Single notes only'}</span>

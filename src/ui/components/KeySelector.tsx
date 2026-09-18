@@ -1,16 +1,26 @@
-import type { NoteName, Tonality } from '../../music-core'
+import type { Mode, NoteName } from '../../music-core'
 
 const rootNotes: NoteName[] = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
 
+const modeOptions: { value: Mode; label: string }[] = [
+  { value: 'ionian', label: 'Ionian (Major)' },
+  { value: 'dorian', label: 'Dorian' },
+  { value: 'phrygian', label: 'Phrygian' },
+  { value: 'lydian', label: 'Lydian' },
+  { value: 'mixolydian', label: 'Mixolydian' },
+  { value: 'aeolian', label: 'Aeolian (Natural Minor)' },
+  { value: 'locrian', label: 'Locrian' },
+]
+
 interface KeySelectorProps {
   root: NoteName | null
-  tonality: Tonality | null
+  mode: Mode | null
   onRootChange: (root: NoteName) => void
-  onTonalityChange: (tonality: Tonality) => void
+  onModeChange: (mode: Mode) => void
   onInteract: () => void
 }
 
-export function KeySelector({ root, tonality, onRootChange, onTonalityChange, onInteract }: KeySelectorProps) {
+export function KeySelector({ root, mode, onRootChange, onModeChange, onInteract }: KeySelectorProps) {
   return (
     <section className="panel key-selector" aria-labelledby="key-selector-heading">
       <div>
@@ -34,22 +44,24 @@ export function KeySelector({ root, tonality, onRootChange, onTonalityChange, on
           ))}
         </select>
       </label>
-      <div className="tonality-toggle" aria-label="Tonality">
-        {(['major', 'minor'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={tonality === value ? 'is-active' : ''}
-            disabled={!root}
-            onClick={() => {
-              onInteract()
-              onTonalityChange(value)
-            }}
-          >
-            {value}
-          </button>
-        ))}
-      </div>
+      <label className="field">
+        Scale / Mode
+        <select
+          value={mode ?? ''}
+          disabled={!root}
+          onChange={(event) => {
+            onInteract()
+            onModeChange(event.target.value as Mode)
+          }}
+        >
+          <option value="">Select mode</option>
+          {modeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
     </section>
   )
 }

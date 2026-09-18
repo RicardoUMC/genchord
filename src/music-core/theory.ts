@@ -1,19 +1,48 @@
-import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, NoteName, RomanNumeral, Tonality, VoicedNote } from './types'
+import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mode, NoteName, RomanNumeral, VoicedNote } from './types'
 
 const sharpChromatic: readonly NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const flatChromatic: readonly NoteName[] = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-const majorSteps = [0, 2, 4, 5, 7, 9, 11] as const
-const naturalMinorSteps = [0, 2, 3, 5, 7, 8, 10] as const
-const qualitiesByTonality: Record<Tonality, readonly ChordQuality[]> = {
-  major: ['major', 'minor', 'minor', 'major', 'major', 'minor', 'diminished'],
-  minor: ['minor', 'diminished', 'major', 'minor', 'minor', 'major', 'major'],
+
+const modeSteps: Record<Mode, readonly number[]> = {
+  ionian: [0, 2, 4, 5, 7, 9, 11],
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  phrygian: [0, 1, 3, 5, 7, 8, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  aeolian: [0, 2, 3, 5, 7, 8, 10],
+  locrian: [0, 1, 3, 5, 6, 8, 10],
 }
-const romansByQuality: Record<Tonality, readonly RomanNumeral[]> = {
-  major: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'] as readonly RomanNumeral[],
-  minor: ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'] as readonly RomanNumeral[],
+
+const qualitiesByMode: Record<Mode, readonly ChordQuality[]> = {
+  ionian: ['major', 'minor', 'minor', 'major', 'major', 'minor', 'diminished'],
+  dorian: ['minor', 'minor', 'major', 'major', 'minor', 'diminished', 'major'],
+  phrygian: ['minor', 'major', 'major', 'minor', 'diminished', 'major', 'minor'],
+  lydian: ['major', 'major', 'minor', 'diminished', 'major', 'minor', 'minor'],
+  mixolydian: ['major', 'minor', 'diminished', 'major', 'minor', 'minor', 'major'],
+  aeolian: ['minor', 'diminished', 'major', 'minor', 'minor', 'major', 'major'],
+  locrian: ['diminished', 'major', 'minor', 'minor', 'major', 'major', 'minor'],
 }
-const flatMajorRoots = new Set<NoteName>(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'])
-const flatMinorRoots = new Set<NoteName>(['D', 'G', 'C', 'F', 'Bb', 'Eb', 'Ab'])
+
+const romansByMode: Record<Mode, readonly RomanNumeral[]> = {
+  ionian: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'],
+  dorian: ['i', 'ii', 'III', 'IV', 'v', 'vi°', 'VII'],
+  phrygian: ['i', 'II', 'III', 'iv', 'v°', 'VI', 'vii'],
+  lydian: ['I', 'II', 'iii', 'iv°', 'V', 'vi', 'vii'],
+  mixolydian: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
+  aeolian: ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
+  locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+}
+
+const flatModeRoots: Record<Mode, Set<NoteName>> = {
+  ionian: new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']),
+  dorian: new Set(['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C', 'F']),
+  phrygian: new Set(['Ab', 'Db', 'Gb', 'C', 'F', 'Bb', 'Eb']),
+  lydian: new Set(['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']),
+  mixolydian: new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C']),
+  aeolian: new Set(['D', 'G', 'C', 'F', 'Bb', 'Eb', 'Ab']),
+  locrian: new Set(['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C', 'F']),
+}
+
 const pitchClassByNote: Record<NoteName, number> = {
   C: 0,
   'C#': 1,
@@ -33,6 +62,7 @@ const pitchClassByNote: Record<NoteName, number> = {
   Bb: 10,
   B: 11,
 }
+
 const visibleKeyboardRange = {
   lowest: { note: 'C', octave: 3 } as VoicedNote,
   highest: { note: 'C', octave: 6 } as VoicedNote,
@@ -53,14 +83,14 @@ function isInsideVisibleKeyboardRange(note: VoicedNote): boolean {
 }
 
 export function buildScale(key: Key): NoteName[] {
-  const useFlatSpelling = key.tonality === 'major' ? flatMajorRoots.has(key.root) : flatMinorRoots.has(key.root)
+  const useFlatSpelling = flatModeRoots[key.mode].has(key.root)
   const chromatic = useFlatSpelling ? flatChromatic : sharpChromatic
   const rootIndex = chromatic.indexOf(key.root)
   if (rootIndex === -1) {
     throw new Error(`Unsupported root note: ${key.root}`)
   }
 
-  const steps = key.tonality === 'major' ? majorSteps : naturalMinorSteps
+  const steps = modeSteps[key.mode]
   return steps.map((step) => chromatic[(rootIndex + step) % chromatic.length])
 }
 
@@ -95,14 +125,14 @@ export function resolveDiatonicTriad(key: Key, degree: DegreeNum, startingOctave
   const scale = buildScale(key)
   const degreeIndex = degree - 1
   const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
-  const quality = qualitiesByTonality[key.tonality][degreeIndex]
+  const quality = qualitiesByMode[key.mode][degreeIndex]
 
   const voicing = voiceChordFrom(notes, startingOctave)
 
   return {
     kind: 'chord',
     name: `${notes[0]} ${quality}`,
-    degree: romansByQuality[key.tonality][degreeIndex],
+    degree: romansByMode[key.mode][degreeIndex],
     degreeNum: degree,
     quality,
     notes,
@@ -129,10 +159,10 @@ export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, request
 
   return {
     kind: 'chord',
-    name: `${notes[0]} ${qualitiesByTonality[key.tonality][degreeIndex]}`,
-    degree: romansByQuality[key.tonality][degreeIndex],
+    name: `${notes[0]} ${qualitiesByMode[key.mode][degreeIndex]}`,
+    degree: romansByMode[key.mode][degreeIndex],
     degreeNum: degree,
-    quality: qualitiesByTonality[key.tonality][degreeIndex],
+    quality: qualitiesByMode[key.mode][degreeIndex],
     notes,
     inversion: 'root position',
     voicing,

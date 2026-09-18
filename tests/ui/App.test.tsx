@@ -14,7 +14,8 @@ vi.mock('../../src/audio', () => ({
 
 async function selectCmajor(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByRole('combobox', { name: /root note/i }), 'C')
-  await user.click(screen.getByRole('button', { name: 'major' }))
+  await user.selectOptions(screen.getByRole('combobox', { name: /scale \//i }), 'ionian')
+  await user.click(document.body)
 }
 
 describe('GenChord study UI', () => {
@@ -40,7 +41,7 @@ describe('GenChord study UI', () => {
     const tonicButton = screen.getByRole('button', { name: /I1 \/ Q/i })
     fireEvent.pointerDown(tonicButton)
 
-    expect(screen.getByRole('heading', { name: 'C major' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'C Major' })).toBeInTheDocument()
     expect(screen.getAllByText('I')).toHaveLength(3)
     expect(screen.getByText('C · E · G')).toBeInTheDocument()
     expect(screen.getByText('Keyboard C3-C6')).toBeInTheDocument()
@@ -129,7 +130,7 @@ describe('GenChord study UI', () => {
     render(<App />)
 
     await user.selectOptions(screen.getByRole('combobox', { name: /root note/i }), 'Ab')
-    await user.click(screen.getByRole('button', { name: 'major' }))
+    await user.selectOptions(screen.getByRole('combobox', { name: /scale \//i }), 'ionian')
 
     const keyboard = screen.getByLabelText(/piano keyboard/i)
 
@@ -221,13 +222,13 @@ describe('GenChord study UI', () => {
     expect(initAudio).toHaveBeenCalled()
   })
 
-  it('releases sustained playback when tonality changes clear held inputs', async () => {
+  it('releases sustained playback when mode changes clear held inputs', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await selectCmajor(user)
     fireEvent.pointerDown(screen.getByRole('button', { name: /I1 \/ Q/i }))
-    await user.click(screen.getByRole('button', { name: 'minor' }))
+    await user.selectOptions(screen.getByRole('combobox', { name: /scale \//i }), 'aeolian')
 
     expect(screen.queryByText('C · E · G')).not.toBeInTheDocument()
     expect(within(screen.getByLabelText(/piano keyboard/i)).queryAllByTestId('active-piano-key')).toHaveLength(0)
@@ -359,7 +360,7 @@ describe('GenChord study UI', () => {
     await selectCmajor(user)
     fireEvent.pointerDown(screen.getByRole('button', { name: 'C6' }))
 
-    expect(screen.getAllByText('C major').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('C Major').length).toBeGreaterThan(0)
     expect(screen.getAllByText('C6').length).toBeGreaterThan(0)
     expect(screen.queryByText('Partial voicing: visible keyboard notes only.')).not.toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 6 }] }))

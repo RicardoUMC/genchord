@@ -1,9 +1,9 @@
 import { useReducer } from 'react'
-import type { ChordResult, DegreeNum, Key, NoteName, StudyResult, Tonality } from '../music-core'
+import type { ChordResult, DegreeNum, Key, Mode, NoteName, StudyResult } from '../music-core'
 
 interface StudyState {
   root: NoteName | null
-  tonality: Tonality | null
+  mode: Mode | null
   autoChordsEnabled: boolean
   scaleGuideStyle: ScaleGuideStyle
   activeDegree: DegreeNum | null
@@ -16,7 +16,7 @@ export type ScaleGuideStyle = 'dim' | 'highlight'
 
 type StudyAction =
   | { type: 'setRoot'; root: NoteName }
-  | { type: 'setTonality'; tonality: Tonality }
+  | { type: 'setMode'; mode: Mode }
   | { type: 'toggleAutoChords' }
   | { type: 'setScaleGuideStyle'; scaleGuideStyle: ScaleGuideStyle }
   | { type: 'triggerChord'; triggerId: string; degree: DegreeNum; chord: ChordResult }
@@ -27,7 +27,7 @@ type StudyAction =
 
 const initialState: StudyState = {
   root: null,
-  tonality: null,
+  mode: null,
   autoChordsEnabled: true,
   scaleGuideStyle: 'dim',
   activeDegree: null,
@@ -56,8 +56,8 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
   switch (action.type) {
     case 'setRoot':
       return clearChord({ ...state, root: action.root })
-    case 'setTonality':
-      return clearChord({ ...state, tonality: action.tonality })
+    case 'setMode':
+      return clearChord({ ...state, mode: action.mode })
     case 'toggleAutoChords':
       return { ...state, autoChordsEnabled: !state.autoChordsEnabled }
     case 'setScaleGuideStyle':
@@ -80,7 +80,7 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
 
 export function useStudyState() {
   const [state, dispatch] = useReducer(reducer, initialState)
-  const activeKey: Key | null = state.root && state.tonality ? { root: state.root, tonality: state.tonality } : null
+  const activeKey: Key | null = state.root && state.mode ? { root: state.root, mode: state.mode } : null
 
   return { state, activeKey, dispatch }
 }

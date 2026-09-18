@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { initAudio, installAudioWarmup, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
-import type { ChordResult, DegreeNum, NoteName, Tonality, VoicedNote } from './music-core'
+import type { ChordResult, DegreeNum, Mode, NoteName, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import type { ScaleGuideStyle } from './ui/state'
-import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, useStudyState } from './ui'
+import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, MusicalContext, useStudyState } from './ui'
 
 export default function App() {
   const { state, activeKey, dispatch } = useStudyState()
@@ -81,9 +81,9 @@ export default function App() {
     dispatch({ type: 'setRoot', root })
   }
 
-  const changeTonality = (tonality: Tonality) => {
+  const changeMode = (mode: Mode) => {
     releaseAllVoicings()
-    dispatch({ type: 'setTonality', tonality })
+    dispatch({ type: 'setMode', mode })
   }
 
   const triggerKeyboardKey = (triggerId: string, key: VoicedNote) => {
@@ -130,9 +130,9 @@ export default function App() {
       <div className="control-grid" aria-label="Sound and study configuration">
         <KeySelector
           root={state.root}
-          tonality={state.tonality}
+          mode={state.mode}
           onRootChange={changeRoot}
-          onTonalityChange={changeTonality}
+          onModeChange={changeMode}
           onInteract={warmAudio}
         />
         <DegreeButtons activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseHeldVoicing} />
@@ -147,6 +147,8 @@ export default function App() {
           <p className="helper">Shortcut: A. When off, degree buttons, degree shortcuts, and keyboard keys play only the selected note.</p>
         </section>
       </div>
+
+      <MusicalContext mode={state.mode} />
     </main>
   )
 }

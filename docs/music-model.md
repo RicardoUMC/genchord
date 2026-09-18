@@ -49,10 +49,28 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 - Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema no reubica el acorde a una octava inferior: conserva el registro disparado y reproduce/muestra solo las notas del voicing que existen dentro del teclado visible.
 - La escritura del prototipo evita dobles alteraciones y nombres como `E#`, `B#`, `Cb` o `Fb`; esas decisiones quedan para una capa de notacion mas completa.
 
+## Modos diatónicos
+
+| Modo griego | Nombre práctico | Patrón de intervalos | Acordes triada diatónicos | Numerales romanos |
+|-------------|-----------------|---------------------|---------------------------|-------------------|
+| Ionian | Major | W-W-H-W-W-W-H | M-m-m-M-M-m-dim | I, ii, iii, IV, V, vi, vii° |
+| Dorian | — | W-H-W-W-W-H-W | m-m-M-M-m-dim-M | i, ii, III, IV, v, vi°, VII |
+| Phrygian | — | H-W-W-W-H-W-W | m-M-M-m-dim-M-m | i, II, III, iv, v°, VI, vii |
+| Lydian | — | W-W-W-H-W-W-H | M-M-m-dim-M-m-m | I, II, iii, iv°, V, vi, vii |
+| Mixolydian | — | W-W-H-W-W-H-W | M-m-dim-M-m-m-M | I, ii, iii°, IV, v, vi, VII |
+| Aeolian | Natural Minor | W-H-W-W-H-W-W | m-dim-M-m-m-M-M | i, ii°, III, iv, v, VI, VII |
+| Locrian | — | H-W-W-H-W-W-W | dim-M-m-m-M-M-m | i°, II, iii, iv, V, VI, vii |
+
+**Notas de implementación:**
+- Los modos son rotaciones de la escala mayor; comparten el sistema de alturas cromáticas pero cambian el centro tonal (tonic) y las funciones armónicas de cada grado.
+- Cada modo tiene su propio conjunto de calidades diatónicas y numerales romanos sensibles a calidad.
+- El sistema de notación continúa usando nombres tipo CDE más numerales romanos.
+- En la UI, cada modo se muestra con ambos nombres: griego + práctico cuando aplica (ej: "Ionian (Major)", "Aeolian (Natural Minor)", "Dorian").
+
 ## Preguntas abiertas
 
 - Resuelto para el MVP: el sistema de notacion por defecto es CDE; Do Re Mi queda como preferencia futura.
-- Si menor armonica, menor melodica o modos deben ser opciones configurables despues del MVP.
+- Resuelto para el MVP: modos diatónicos son la siguiente feature prioritria.
 - Como nombrar alteraciones segun tonalidad para evitar resultados teoricamente raros.
 - Resuelto para el MVP: permite ambos, con botones de grado y teclas absolutas del piano visual.
 - Que configuracion futura deberia controlar si el teclado visual prioriza nota individual, generacion de acorde contextual o comportamiento combinado.
