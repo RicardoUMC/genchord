@@ -12,7 +12,7 @@ The system SHALL play all notes of the triggered voicing simultaneously. It SHOU
 
 #### Scenario: Play chord on degree click
 
-- GIVEN the active key is "C major" and AudioContext is initialized
+- GIVEN the active musical context is "C Ionian (Major)" and AudioContext is initialized
 - WHEN the user clicks degree I
 - THEN notes C, E, G are heard simultaneously within 50ms of the click
 
@@ -49,12 +49,12 @@ AudioContext SHALL be created or resumed on the first user gesture to comply wit
 
 ### Requirement: No Playback Without User Gesture
 
-The system SHALL NOT play sound autonomously (e.g. on key change or page load).
+The system SHALL NOT play sound autonomously (e.g. on musical context change or page load).
 
-#### Scenario: Key change does not trigger sound
+#### Scenario: Context change does not trigger sound
 
 - GIVEN the app is loaded
-- WHEN the user changes key from C major to G major
+- WHEN the user changes musical context from C Ionian to G Ionian
 - THEN no sound is played
 
 ### Requirement: Fast Response

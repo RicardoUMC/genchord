@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Render a keyboard-like UI that highlights the notes of the active chord, giving the user a spatial reference for hand placement.
+Render a keyboard-like UI that highlights the notes of the active chord or single keyboard tone, giving the user a spatial reference for hand placement.
 
 ## Requirements
 
@@ -22,14 +22,14 @@ When a chord is triggered, the system SHALL highlight exactly the keys correspon
 #### Scenario: Highlight C major triad
 
 - GIVEN the keyboard is visible and no chord is active
-- WHEN degree I of C major is triggered
+- WHEN degree I of C Ionian is triggered
 - THEN keys C, E, and G are highlighted
 - AND no other keys are highlighted
 
 #### Scenario: Highlight updates on new chord
 
 - GIVEN keys C, E, G are highlighted
-- WHEN degree V of C major is triggered
+- WHEN degree V of C Ionian is triggered
 - THEN highlights move to G, B, D
 
 ### Requirement: Generator Note Accent
@@ -39,7 +39,7 @@ When a chord or note is triggered, the system SHALL visually distinguish the gen
 #### Scenario: Accent generator note inside chord
 
 - GIVEN the keyboard is visible and no chord is active
-- WHEN the user triggers C4 in C major and it resolves to the I chord
+- WHEN the user triggers C4 in C Ionian and it resolves to the I chord
 - THEN keys C4, E4, and G4 are highlighted as active
 - AND C4 has a distinct generator accent
 
@@ -68,12 +68,12 @@ The system SHALL allow pointer drag-across playback on the visual keyboard so a 
 - THEN playback stops
 - AND no key remains pressed because of that pointer interaction
 
-### Requirement: Highlight Clear on Key Change
+### Requirement: Highlight Clear on Context Change
 
-When the key changes, all highlights SHALL be removed until a new chord is triggered.
+When the musical context changes, all highlights SHALL be removed until a new chord or keyboard tone is triggered.
 
-#### Scenario: Clear highlights on key change
+#### Scenario: Clear highlights on context change
 
 - GIVEN keys G, B, D are highlighted
-- WHEN the user changes the key
+- WHEN the user changes the musical context
 - THEN no keys are highlighted

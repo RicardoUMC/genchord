@@ -16,7 +16,7 @@ GenChord usa SDD en modo hibrido: los artefactos revisables viven en `openspec/`
 |---|---|
 | Identidad | `GenChord` como nombre de trabajo. |
 | Mision | Herramienta web de estudio para elegir contexto musical, disparar acordes desde notas/grados y ver/escuchar el resultado. |
-| MVP | Prototipo interactivo con tonalidad mayor/menor natural, disparo por grados y teclas visuales, teclado C3-C6, audio con sampler/fallback y voicing automatico. |
+| MVP | Prototipo interactivo con 12 raices cromaticas, 7 modos diatonicos, disparo por grados y teclas visuales, teclado C3-C6, audio con sampler/fallback y voicing automatico. |
 | Fuera de alcance inicial | No DAW, no reemplazo de practica tecnica, no libreria teorica generica para terceros. |
 
 ## Arquitectura
@@ -43,4 +43,4 @@ La codebase actual usa Vite + React + TypeScript, Tone.js y Vitest. El build de 
 
 ## Proximo paso
 
-Continuar evolucionando el prototipo desde evidencia real: inversiones, registro configurable, modos o voicings avanzados deben entrar como cambios acotados y testeables.
+Continuar evolucionando el prototipo desde evidencia real: inversiones, registro configurable, escalas no diatonicas o voicings avanzados deben entrar como cambios acotados y testeables.
