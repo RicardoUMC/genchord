@@ -9,7 +9,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 | Lenguaje | TypeScript | Ayuda a modelar dominio musical sin perder velocidad. |
 | UI | React con Vite | React encaja bien con visualizacion interactiva; Vite simplifica el prototipo sin sumar routing innecesario. |
 | Audio | Web Audio API via Tone.js | Tone.js reduce friccion para scheduling, instrumentos simples y acordes. |
-| Teoria musical | Nucleo propio minimo detras de `music-core` | Alcanza para triadas mayor/menor natural del prototipo y evita acoplar la UI a una libreria externa antes de validar el modelo. |
+| Teoria musical | Nucleo propio minimo detras de `music-core` | Alcanza para triadas diatonicas en los 7 modos y evita acoplar la UI a una libreria externa antes de validar el modelo. |
 | Tests | Vitest para teoria, UI y adaptador de audio | La teoria tiene reglas puras y debe ser confiable; UI/audio quedan cubiertos con pruebas ligeras. |
 
 ## Tradeoffs
@@ -25,7 +25,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 ## Defaults del primer prototipo
 
 - `music-core` es una frontera pura sin React, DOM ni audio.
-- La teoria inicial cubre 12 raices mayores y 12 menores naturales para triadas diatonicas.
+- La teoria inicial cubre 12 raices cromaticas y los 7 modos diatonicos para triadas.
 - El audio usa Tone.js detras de un adaptador: `Tone.start()` corre desde gestos explicitos del usuario, retries remain possible after failed or suspended unlock attempts, and a one-time `pointerup`/`click`/`keydown` warm-up path helps mobile browsers unlock audio from valid activation events. A `Tone.Sampler` de piano se prefiere cuando las muestras estan listas y `PolySynth` queda como fallback si las muestras no estan disponibles o todavia no cargaron.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
 

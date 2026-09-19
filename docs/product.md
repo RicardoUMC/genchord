@@ -16,7 +16,7 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 
 ## MVP provisional
 
-- Seleccionar tonalidad: nota raiz y mayor/menor.
+- Seleccionar contexto musical: nota raiz y escala/modo diatonico.
 - Usar el teclado visual como superficie principal de estudio.
 - Tocar una tecla visual aunque no pertenezca al contexto: si puede resolver un acorde diatonico, dispara ese voicing; si no, suena y se resalta solo la nota individual.
 - Tocar una tecla fisica o grado y disparar el acorde correspondiente dentro del contexto. El prototipo combina botones de grado con teclas absolutas del piano visual para estudiar la misma armonia desde dos entradas.

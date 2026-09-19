@@ -1,6 +1,6 @@
 # Modelo musical inicial
 
-Este modelo define el vocabulario base. El primer prototipo ya fija un subconjunto practico para validar la experiencia: triadas diatonicas en mayor y menor natural sobre 12 raices cromaticas, inversion fundamental y voicing cerrado automatico no configurable.
+Este modelo define el vocabulario base. El prototipo actual fija un subconjunto practico para validar la experiencia: triadas diatonicas en los 7 modos sobre 12 raices cromaticas, inversion fundamental y voicing cerrado automatico no configurable.
 
 ## Conceptos principales
 
@@ -9,7 +9,7 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 | Nota | Altura nombrada, por ejemplo C, D, E o Do, Re, Mi. |
 | Alteracion | Cambio sobre una nota natural: sostenido, bemol, becuadro si hace falta. |
 | Tonalidad | Centro tonal elegido por el usuario, por ejemplo C mayor o A menor. |
-| Escala / modo | Conjunto ordenado de grados disponible dentro de un contexto. Mayor/menor primero; modos despues. |
+| Escala / modo | Conjunto ordenado de grados disponible dentro de un contexto. El prototipo actual incluye los 7 modos diatonicos. |
 | Grado | Posicion relativa en la escala: I, ii, iii o 1, 2, 3 segun notacion. |
 | Calidad de acorde | Tipo armonico: mayor, menor, disminuido, aumentado, dominante, suspendido, etc. |
 | Inversion | Que nota del acorde queda abajo: fundamental, tercera, quinta, septima. |
@@ -41,13 +41,13 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 - Las inversiones cambian el bajo, no necesariamente la identidad del acorde.
 - El voicing pertenece al uso practico en teclado; no conviene mezclarlo con la definicion abstracta del acorde.
 - El prototipo usa numerales romanos sensibles a calidad: mayor en mayuscula (`I`), menor en minuscula (`ii`) y disminuido con simbolo de grado (`vii°`, `ii°`).
-- Menor inicial significa menor natural. Menor armonica y melodica quedan fuera del primer prototipo.
+- Aeolian representa menor natural. Menor armonica y melodica quedan fuera del prototipo actual.
 - La visualizacion de teclado resalta solo tonos del acorde activo; no resalta escala completa ni grados disponibles.
 - La visualizacion de teclado resalta solo las notas exactas del voicing activo, no cada repeticion de la misma clase de altura entre C3-C6; dentro de ese voicing, la nota generadora lleva un acento visual propio.
 - Los acordes disparados por grados usan por defecto un voicing ascendente desde el registro C4 en adelante; si una triada cruza C, la nota superior sube a la siguiente octava.
 - Las restricciones de escala/contexto aplican a los grados. El teclado visual es permisivo: una tecla diatonica puede disparar el grado contextual correspondiente; una tecla fuera de escala o sin contexto sigue sonando como nota individual y se resalta sola.
 - Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema no reubica el acorde a una octava inferior: conserva el registro disparado y reproduce/muestra solo las notas del voicing que existen dentro del teclado visible.
-- La escritura del prototipo evita dobles alteraciones y nombres como `E#`, `B#`, `Cb` o `Fb`; esas decisiones quedan para una capa de notacion mas completa.
+- La escritura del prototipo respeta letras de escala cuando puede y evita dobles alteraciones; nombres como `E#`, `B#`, `Cb` o `Fb` quedan simplificados para una capa de notacion mas completa.
 
 ## Modos diatónicos
 
@@ -70,7 +70,7 @@ Este modelo define el vocabulario base. El primer prototipo ya fija un subconjun
 ## Preguntas abiertas
 
 - Resuelto para el MVP: el sistema de notacion por defecto es CDE; Do Re Mi queda como preferencia futura.
-- Resuelto para el MVP: modos diatónicos son la siguiente feature prioritria.
+- Resuelto para el MVP: los 7 modos diatónicos estan implementados.
 - Como nombrar alteraciones segun tonalidad para evitar resultados teoricamente raros.
 - Resuelto para el MVP: permite ambos, con botones de grado y teclas absolutas del piano visual.
 - Que configuracion futura deberia controlar si el teclado visual prioriza nota individual, generacion de acorde contextual o comportamiento combinado.

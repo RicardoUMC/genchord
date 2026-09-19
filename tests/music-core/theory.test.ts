@@ -57,6 +57,36 @@ const aeolianTriadQualities: ChordQuality[] = ['minor', 'diminished', 'major', '
 const ionianRomanNumerals: RomanNumeral[] = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']
 const aeolianRomanNumerals: RomanNumeral[] = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII']
 
+const representativeModeKeys: ExpectedKey[] = [
+  { key: { root: 'C', mode: 'ionian' }, scale: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
+  { key: { root: 'C', mode: 'dorian' }, scale: ['C', 'D', 'Eb', 'F', 'G', 'A', 'Bb'] },
+  { key: { root: 'C', mode: 'phrygian' }, scale: ['C', 'Db', 'Eb', 'F', 'G', 'Ab', 'Bb'] },
+  { key: { root: 'C', mode: 'lydian' }, scale: ['C', 'D', 'E', 'F#', 'G', 'A', 'B'] },
+  { key: { root: 'C', mode: 'mixolydian' }, scale: ['C', 'D', 'E', 'F', 'G', 'A', 'Bb'] },
+  { key: { root: 'C', mode: 'aeolian' }, scale: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'] },
+  { key: { root: 'C', mode: 'locrian' }, scale: ['C', 'Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb'] },
+]
+
+const triadQualitiesByMode: Record<Mode, ChordQuality[]> = {
+  ionian: ionianTriadQualities,
+  dorian: ['minor', 'minor', 'major', 'major', 'minor', 'diminished', 'major'],
+  phrygian: ['minor', 'major', 'major', 'minor', 'diminished', 'major', 'minor'],
+  lydian: ['major', 'major', 'minor', 'diminished', 'major', 'minor', 'minor'],
+  mixolydian: ['major', 'minor', 'diminished', 'major', 'minor', 'minor', 'major'],
+  aeolian: aeolianTriadQualities,
+  locrian: ['diminished', 'major', 'minor', 'minor', 'major', 'major', 'minor'],
+}
+
+const romanNumeralsByMode: Record<Mode, RomanNumeral[]> = {
+  ionian: ionianRomanNumerals,
+  dorian: ['i', 'ii', 'III', 'IV', 'v', 'vi°', 'VII'],
+  phrygian: ['i', 'II', 'III', 'iv', 'v°', 'VI', 'vii'],
+  lydian: ['I', 'II', 'iii', 'iv°', 'V', 'vi', 'vii'],
+  mixolydian: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
+  aeolian: aeolianRomanNumerals,
+  locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+}
+
 function expectTriads(key: Key, expected: ExpectedTriad[]) {
   expected.forEach((triad, index) => {
     const chord = resolveDiatonicTriad(key, (index + 1) as DegreeNum)
@@ -87,6 +117,12 @@ describe('music-core theory', () => {
     })
   })
 
+  it('spells representative roots for all seven diatonic modes', () => {
+    representativeModeKeys.forEach(({ key, scale }) => {
+      expect(buildScale(key)).toEqual(scale)
+    })
+  })
+
   it('resolves triads for all 12 prototype ionian keys', () => {
     ionianKeys.forEach(({ key, scale }) => {
       expectTriads(key, expectedTriads(scale, ionianTriadQualities, ionianRomanNumerals))
@@ -96,6 +132,12 @@ describe('music-core theory', () => {
   it('resolves triads for all 12 prototype aeolian keys', () => {
     aeolianKeys.forEach(({ key, scale }) => {
       expectTriads(key, expectedTriads(scale, aeolianTriadQualities, aeolianRomanNumerals))
+    })
+  })
+
+  it('resolves triads for representative roots in all seven diatonic modes', () => {
+    representativeModeKeys.forEach(({ key, scale }) => {
+      expectTriads(key, expectedTriads(scale, triadQualitiesByMode[key.mode], romanNumeralsByMode[key.mode]))
     })
   })
 

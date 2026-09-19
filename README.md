@@ -6,7 +6,7 @@ GenChord es una herramienta web para estudiar acordes en teclado de forma rápid
 
 Prototipo interactivo pulido:
 
-- Selección de tonalidad: raíz + modo mayor/menor natural.
+- Selección de contexto musical: raíz + escala/modo diatónico.
 - Disparo de acordes por grados diatónicos.
 - Visualización del acorde: grado, nombre, notas y nota generadora.
 - Teclado visual C3-C6 con notas exactas del voicing resaltadas.
@@ -72,14 +72,12 @@ La regla principal es simple: la teoría musical no debe depender de React, DOM 
 
 Incluido:
 
-- 12 tonalidades mayores.
-- 12 tonalidades menores naturales.
+- 12 raíces cromáticas con los 7 modos diatónicos.
 - Triadas diatónicas.
 - Cifrado romano básico: mayor en mayúscula, menor en minúscula y disminuido con `°`.
 
 Fuera de alcance por ahora:
 
-- Modos y escalas alternativas.
 - Séptimas, suspendidos, acordes `add` y extensiones.
 - Inversiones y voicings configurables.
 - Progresiones guardadas.
@@ -110,5 +108,5 @@ Fuera de alcance por ahora:
 
 - Probar la experiencia en navegador y ajustar la interacción.
 - Agregar inversiones y control de registro/octava.
-- Evaluar modos, séptimas y voicings orientados a acompañamiento.
+- Evaluar séptimas y voicings orientados a acompañamiento.
 - Revisar si conviene incorporar `tonal.js` cuando el modelo musical crezca.

@@ -3,6 +3,10 @@ import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mod
 const sharpChromatic: readonly NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const flatChromatic: readonly NoteName[] = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 
+const naturalLetters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const
+
+type NaturalLetter = (typeof naturalLetters)[number]
+
 const modeSteps: Record<Mode, readonly number[]> = {
   ionian: [0, 2, 4, 5, 7, 9, 11],
   dorian: [0, 2, 3, 5, 7, 9, 10],
@@ -33,14 +37,14 @@ const romansByMode: Record<Mode, readonly RomanNumeral[]> = {
   locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
 }
 
-const flatModeRoots: Record<Mode, Set<NoteName>> = {
-  ionian: new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']),
-  dorian: new Set(['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C', 'F']),
-  phrygian: new Set(['Ab', 'Db', 'Gb', 'C', 'F', 'Bb', 'Eb']),
-  lydian: new Set(['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']),
-  mixolydian: new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C']),
-  aeolian: new Set(['D', 'G', 'C', 'F', 'Bb', 'Eb', 'Ab']),
-  locrian: new Set(['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'C', 'F']),
+const pitchClassByNaturalLetter: Record<NaturalLetter, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
 }
 
 const pitchClassByNote: Record<NoteName, number> = {
@@ -72,6 +76,36 @@ function pitchClass(note: NoteName): number {
   return pitchClassByNote[note]
 }
 
+function rootLetter(note: NoteName): NaturalLetter {
+  return note[0] as NaturalLetter
+}
+
+function transposeLetter(letter: NaturalLetter, steps: number): NaturalLetter {
+  const index = naturalLetters.indexOf(letter)
+
+  return naturalLetters[(index + steps) % naturalLetters.length]
+}
+
+function spellPitchForScaleDegree(letter: NaturalLetter, targetPitchClass: number, fallbackChromatic: readonly NoteName[]): NoteName {
+  const naturalPitchClass = pitchClassByNaturalLetter[letter]
+  const sharp = `${letter}#` as NoteName
+  const flat = `${letter}b` as NoteName
+
+  if (naturalPitchClass === targetPitchClass) {
+    return letter
+  }
+
+  if (pitchClassByNote[sharp] === targetPitchClass) {
+    return sharp
+  }
+
+  if (pitchClassByNote[flat] === targetPitchClass) {
+    return flat
+  }
+
+  return fallbackChromatic[targetPitchClass]
+}
+
 function midiNumber({ note, octave }: VoicedNote): number {
   return (octave + 1) * 12 + pitchClass(note)
 }
@@ -83,15 +117,16 @@ function isInsideVisibleKeyboardRange(note: VoicedNote): boolean {
 }
 
 export function buildScale(key: Key): NoteName[] {
-  const useFlatSpelling = flatModeRoots[key.mode].has(key.root)
-  const chromatic = useFlatSpelling ? flatChromatic : sharpChromatic
-  const rootIndex = chromatic.indexOf(key.root)
-  if (rootIndex === -1) {
-    throw new Error(`Unsupported root note: ${key.root}`)
-  }
-
+  const rootPitchClass = pitchClass(key.root)
+  const fallbackChromatic = key.root.includes('b') ? flatChromatic : sharpChromatic
   const steps = modeSteps[key.mode]
-  return steps.map((step) => chromatic[(rootIndex + step) % chromatic.length])
+
+  return steps.map((step, degreeIndex) => {
+    const letter = transposeLetter(rootLetter(key.root), degreeIndex)
+    const targetPitchClass = (rootPitchClass + step) % 12
+
+    return spellPitchForScaleDegree(letter, targetPitchClass, fallbackChromatic)
+  })
 }
 
 export function voiceChordFrom(chordNotes: NoteName[], startingOctave = 4): VoicedNote[] {
