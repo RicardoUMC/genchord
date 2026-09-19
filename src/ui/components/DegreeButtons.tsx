@@ -28,13 +28,14 @@ function isEditableTarget(target: EventTarget | null) {
 }
 
 interface DegreeButtonsProps {
+  className?: string
   activeKey: Key | null
   activeDegree: DegreeNum | null
   onStart: (triggerId: string, degree: DegreeNum, chord: ChordResult) => void
   onStop: (triggerId: string) => void
 }
 
-export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: DegreeButtonsProps) {
+export function DegreeButtons({ className, activeKey, activeDegree, onStart, onStop }: DegreeButtonsProps) {
   const pressedShortcutCodes = useRef(new Set<string>())
   const activeKeyRef = useRef(activeKey)
   const onStartRef = useRef(onStart)
@@ -113,7 +114,7 @@ export function DegreeButtons({ activeKey, activeDegree, onStart, onStop }: Degr
   const pointerTriggerId = (degree: DegreeNum) => `degree:pointer:${degree}`
 
   return (
-    <section className="panel" aria-labelledby="degree-heading">
+    <section className={`panel degree-panel${className ? ` ${className}` : ''}`} aria-labelledby="degree-heading">
       <div>
         <p className="eyebrow">Degrees</p>
         <h2 id="degree-heading">Trigger a diatonic triad</h2>

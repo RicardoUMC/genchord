@@ -110,19 +110,20 @@ export default function App() {
       <section className="instrument-stage" aria-labelledby="chord-display-heading">
         <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
         <div className="instrument-toolbar">
-          <div className="instrument-status-slot">
-            {audioError ? <p className="audio-error" role="alert">{audioError}</p> : <span aria-hidden="true" />}
+          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseHeldVoicing} />
+          <div className="instrument-options">
+            {audioError && <p className="audio-error instrument-status-slot" role="alert">{audioError}</p>}
+            <label className="field scale-guide-field">
+              Scale guide style
+              <select
+                value={state.scaleGuideStyle}
+                onChange={(event) => dispatch({ type: 'setScaleGuideStyle', scaleGuideStyle: event.target.value as ScaleGuideStyle })}
+              >
+                <option value="dim">Dim out-of-scale keys</option>
+                <option value="highlight">Highlight in-scale keys</option>
+              </select>
+            </label>
           </div>
-          <label className="field scale-guide-field">
-            Scale guide style
-            <select
-              value={state.scaleGuideStyle}
-              onChange={(event) => dispatch({ type: 'setScaleGuideStyle', scaleGuideStyle: event.target.value as ScaleGuideStyle })}
-            >
-              <option value="dim">Dim out-of-scale keys</option>
-              <option value="highlight">Highlight in-scale keys</option>
-            </select>
-          </label>
         </div>
         <KeyboardViz activeInputs={Object.values(state.activeInputs)} guidance={state.guidance} scaleNotes={scaleNotes} scaleGuideStyle={state.scaleGuideStyle} onStartKey={triggerKeyboardKey} onStopKey={releaseHeldVoicing} />
       </section>
@@ -135,7 +136,6 @@ export default function App() {
           onModeChange={changeMode}
           onInteract={warmAudio}
         />
-        <DegreeButtons activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseHeldVoicing} />
         <section className="panel" aria-labelledby="auto-chords-heading">
           <div>
             <p className="eyebrow">Playback</p>
