@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { initAudio, installAudioWarmup, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
+import { initAudio, installAudioWarmup, prepareAudioInstruments, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
 import type { ChordResult, DegreeNum, Mode, NoteName, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import type { ScaleGuideStyle } from './ui/state'
@@ -17,6 +17,7 @@ export default function App() {
   }
 
   useEffect(() => {
+    prepareAudioInstruments()
     const uninstallAudioWarmup = installAudioWarmup()
     const stopHeldInputs = () => {
       releaseAllVoicings()

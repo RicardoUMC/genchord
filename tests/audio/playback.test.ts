@@ -59,7 +59,7 @@ vi.mock('tone', () => ({
   }),
 }))
 
-import { disposeAudio, initAudio, playVoicing, releaseVoicing, startVoicing } from '../../src/audio/playback'
+import { disposeAudio, initAudio, playVoicing, prepareAudioInstruments, releaseVoicing, startVoicing } from '../../src/audio/playback'
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -90,6 +90,14 @@ describe('audio playback adapter', () => {
 
     expect(toneMock.start).toHaveBeenCalledTimes(1)
     expect(toneMock.toDestination).toHaveBeenCalledTimes(2)
+  })
+
+  it('prepares synth fallback and sampler downloads without starting audio', () => {
+    prepareAudioInstruments()
+
+    expect(toneMock.start).not.toHaveBeenCalled()
+    expect(toneMock.toDestination).toHaveBeenCalledTimes(2)
+    expect(toneMock.samplerOptions).toBeDefined()
   })
 
   it('triggers all resolved voiced notes at the requested octave', async () => {

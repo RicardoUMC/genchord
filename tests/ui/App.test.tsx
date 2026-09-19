@@ -7,6 +7,7 @@ import { initAudio, releaseAllVoicings, releaseVoicing, startVoicing } from '../
 vi.mock('../../src/audio', () => ({
   initAudio: vi.fn().mockResolvedValue(undefined),
   installAudioWarmup: vi.fn(() => vi.fn()),
+  prepareAudioInstruments: vi.fn(),
   startVoicing: vi.fn().mockResolvedValue(undefined),
   releaseVoicing: vi.fn(),
   releaseAllVoicings: vi.fn(),

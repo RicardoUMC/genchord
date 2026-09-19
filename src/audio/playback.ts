@@ -84,15 +84,20 @@ function getInstrument(): PlaybackInstrument {
   return getSynth()
 }
 
+export function prepareAudioInstruments(): void {
+  getSynth()
+  getSampler()
+}
+
 function isAudioRunning() {
   return Tone.context.state === 'running'
 }
 
 export async function initAudio(): Promise<void> {
+  prepareAudioInstruments()
+
   if (isAudioRunning()) {
     audioStarted = true
-    getSynth()
-    getSampler()
     return
   }
 
@@ -101,8 +106,6 @@ export async function initAudio(): Promise<void> {
   initPromise ??= Tone.start().then(() => {
     initPromise = undefined
     audioStarted = isAudioRunning()
-    getSynth()
-    getSampler()
   }).catch((error: unknown) => {
     initPromise = undefined
     throw error
@@ -112,6 +115,8 @@ export async function initAudio(): Promise<void> {
 }
 
 export function installAudioWarmup(target: Window = window): () => void {
+  prepareAudioInstruments()
+
   if (warmupCleanup) {
     return warmupCleanup
   }
@@ -146,6 +151,7 @@ export function installAudioWarmup(target: Window = window): () => void {
 }
 
 export async function playVoicing(event: PlaybackEvent): Promise<void> {
+  prepareAudioInstruments()
   await initAudio()
   const notes = event.voicing.map(({ note, octave }) => `${note}${octave}`)
   getInstrument().triggerAttackRelease(notes, '2n', Tone.now())
@@ -157,6 +163,8 @@ export async function startVoicing(event: SustainedPlaybackEvent): Promise<void>
   const notes = event.voicing.map(({ note, octave }) => `${note}${octave}`)
   const pendingTrigger: SustainedTrigger = { notes }
   sustainedTriggers.set(event.triggerId, pendingTrigger)
+
+  prepareAudioInstruments()
 
   await initAudio()
 
