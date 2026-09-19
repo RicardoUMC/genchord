@@ -1,6 +1,51 @@
 :root {
-  color: #f7f2e8;
-  background: #14110d;
+  /* Current dark theme tokens. Keep these semantic so a future theme can swap values. */
+  --color-surface-page: #14110d;
+  --color-surface-shell: #17130e;
+  --color-surface-panel: #1d1812;
+  --color-surface-stage: #1b1610;
+  --color-surface-control: #18140f;
+  --color-surface-control-hover: #211a12;
+  --color-surface-muted: #17130f;
+  --color-surface-code: #2d251c;
+
+  --color-text-primary: #f7f2e8;
+  --color-text-secondary: #c8bda8;
+  --color-text-muted: #e6d8bf;
+  --color-text-on-accent: #1b1408;
+  --color-text-on-generator: #1b0f0a;
+
+  --color-border-strong: #665338;
+  --color-border-default: #514433;
+  --color-border-muted: #3f3427;
+  --color-border-subtle: #2d251c;
+  --color-border-control: #5f503d;
+  --color-border-control-hover: #9b7a3e;
+  --color-border-panel-top: #7b623b;
+  --color-border-stage-top: #b38843;
+
+  --color-accent-gold: #d9a441;
+  --color-accent-gold-rgb: 217 164 65;
+  --color-accent-gold-strong: #ffcf5a;
+  --color-accent-active: #c7932f;
+  --color-accent-active-rgb: 199 147 47;
+  --color-accent-control: #8a6a32;
+  --color-accent-generator: #f2a16f;
+  --color-accent-generator-rgb: 242 161 111;
+  --color-warning-text: #ffd08a;
+
+  --color-key-white-text: #4a3928;
+  --color-key-white-border: #32281d;
+  --color-key-white-hover-border: #8f7447;
+  --gradient-key-white: linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
+  --color-key-black-border: #120c07;
+  --gradient-key-black: linear-gradient(#282016, #15100b 72%, #090705);
+  --color-key-scale-dimmed-text: #7a603f;
+  --gradient-key-white-dimmed: linear-gradient(#ded0b8, #c1a77c 72%, #a08357);
+  --color-key-black-dimmed-border: #2b241b;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface-page);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -13,10 +58,10 @@ body {
   background:
     radial-gradient(
       circle at 18% 0%,
-      rgb(217 164 65 / 0.09),
+      rgb(var(--color-accent-gold-rgb) / 0.09),
       transparent 26rem
     ),
-    #14110d;
+    var(--color-surface-page);
 }
 
 button,
@@ -31,8 +76,8 @@ select {
   padding: 1.5rem 2rem 2rem;
   background:
     linear-gradient(180deg, rgb(247 242 232 / 0.06), transparent 1px),
-    linear-gradient(90deg, rgb(217 164 65 / 0.04) 1px, transparent 1px),
-    linear-gradient(#17130e, #14110d);
+    linear-gradient(90deg, rgb(var(--color-accent-gold-rgb) / 0.04) 1px, transparent 1px),
+    linear-gradient(var(--color-surface-shell), var(--color-surface-page));
   background-size:
     auto,
     48px 48px,
@@ -47,7 +92,7 @@ select {
   max-width: none;
   margin-bottom: 1rem;
   padding-bottom: 0.9rem;
-  border-bottom: 1px solid #3f3427;
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 .hero-intro {
@@ -76,12 +121,12 @@ select {
 
 .hero-intro p:last-child,
 .helper {
-  color: #c8bda8;
+  color: var(--color-text-secondary);
 }
 
 .eyebrow {
   margin: 0 0 0.5rem;
-  color: #d9a441;
+  color: var(--color-accent-gold);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -91,11 +136,11 @@ select {
 .instrument-stage {
   margin-top: 1rem;
   padding: clamp(0.7rem, 2vw, 1rem);
-  border: 1px solid #665338;
-  border-top-color: #b38843;
+  border: 1px solid var(--color-border-strong);
+  border-top-color: var(--color-border-stage-top);
   border-radius: 10px;
   background:
-    linear-gradient(180deg, rgb(217 164 65 / 0.08), transparent 7rem), #1b1610;
+    linear-gradient(180deg, rgb(var(--color-accent-gold-rgb) / 0.08), transparent 7rem), var(--color-surface-stage);
   box-shadow: 0 20px 42px rgb(0 0 0 / 0.28);
 }
 
@@ -109,7 +154,7 @@ select {
   block-size: var(--study-summary-block-size);
   margin-bottom: 0.75rem;
   padding-bottom: 0.8rem;
-  border-bottom: 1px solid #3f3427;
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 .keyboard-panel {
@@ -139,10 +184,10 @@ select {
 
 .study-pills span {
   padding: 0.28rem 0.48rem;
-  border: 1px solid #5f503d;
+  border: 1px solid var(--color-border-control);
   border-radius: 999px;
-  color: #e6d8bf;
-  background: #17130f;
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
   font-size: 0.74rem;
   font-weight: 700;
 }
@@ -165,11 +210,11 @@ select {
 .panel {
   margin-top: 1rem;
   padding: 1rem 1rem 1.1rem;
-  border: 1px solid #514433;
-  border-top-color: #7b623b;
+  border: 1px solid var(--color-border-default);
+  border-top-color: var(--color-border-panel-top);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 4rem), #1d1812;
+    linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 4rem), var(--color-surface-panel);
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.22);
 }
 
@@ -182,23 +227,23 @@ select {
 .field {
   display: grid;
   gap: 0.4rem;
-  color: #c8bda8;
+  color: var(--color-text-secondary);
 }
 
 select,
 button {
-  border: 1px solid #5f503d;
+  border: 1px solid var(--color-border-control);
   border-radius: 6px;
-  color: #f7f2e8;
-  background: #18140f;
+  color: var(--color-text-primary);
+  background: var(--color-surface-control);
 }
 
 select {
   width: 100%;
   padding: 0.8rem 1rem;
-  border-left: 3px solid #8a6a32;
+  border-left: 3px solid var(--color-accent-control);
   background:
-    linear-gradient(90deg, rgb(217 164 65 / 0.09), transparent 42%), #18140f;
+    linear-gradient(90deg, rgb(var(--color-accent-gold-rgb) / 0.09), transparent 42%), var(--color-surface-control);
 }
 
 button {
@@ -214,8 +259,8 @@ button {
 }
 
 button:hover:not(:disabled) {
-  border-color: #9b7a3e;
-  background: #211a12;
+  border-color: var(--color-border-control-hover);
+  background: var(--color-surface-control-hover);
 }
 
 button:disabled {
@@ -225,7 +270,7 @@ button:disabled {
 
 button:focus-visible,
 select:focus-visible {
-  outline: 2px solid #d9a441;
+  outline: 2px solid var(--color-accent-gold);
   outline-offset: 2px;
 }
 
@@ -257,9 +302,9 @@ select:focus-visible {
 }
 
 .is-active {
-  border-color: #d9a441;
-  background: #c7932f;
-  color: #1b1408;
+  border-color: var(--color-accent-gold);
+  background: var(--color-accent-active);
+  color: var(--color-text-on-accent);
 }
 
 .degree-grid button {
@@ -270,13 +315,13 @@ select:focus-visible {
   align-content: center;
   border-top-color: #78623e;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent), #18140f;
+    linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent), var(--color-surface-control);
 }
 
 .degree-grid button.is-active {
-  border-color: #d9a441;
-  background: #c7932f;
-  color: #1b1408;
+  border-color: var(--color-accent-gold);
+  background: var(--color-accent-active);
+  color: var(--color-text-on-accent);
 }
 
 .degree-grid span {
@@ -321,9 +366,9 @@ select:focus-visible {
   min-height: clamp(3.1rem, 6vw, 4rem);
   place-content: center;
   border-radius: 6px;
-  color: #1b1408;
+  color: var(--color-text-on-accent);
   background:
-    linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 40%), #c7932f;
+    linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 40%), var(--color-accent-active);
   font-size: clamp(1.25rem, 3.4vw, 1.8rem);
   font-weight: 800;
 }
@@ -342,7 +387,7 @@ select:focus-visible {
 }
 
 .note-list {
-  color: #c8bda8;
+  color: var(--color-text-secondary);
   font-size: 1.15rem;
   letter-spacing: 0.08em;
 }
@@ -386,7 +431,7 @@ select:focus-visible {
 }
 
 .chord-facts dt {
-  color: #c8bda8;
+  color: var(--color-text-secondary);
   font-size: 0.66rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -394,7 +439,7 @@ select:focus-visible {
 }
 
 .chord-facts dd {
-  color: #f7f2e8;
+  color: var(--color-text-primary);
   font-size: 0.92rem;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -418,8 +463,8 @@ select:focus-visible {
   overflow-y: hidden;
   touch-action: manipulation;
   padding: 0.9rem 0 0.75rem;
-  border-bottom: 1px solid #2d251c;
-  background: #17130f;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-muted);
 }
 
 .keyboard-register {
@@ -464,11 +509,11 @@ select:focus-visible {
   z-index: 0;
   width: var(--white-key-width);
   height: var(--key-height);
-  border: 1px solid #32281d;
+  border: 1px solid var(--color-key-white-border);
   border-left-width: 0;
   border-radius: 0 0 4px 4px;
-  color: #4a3928;
-  background: linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
+  color: var(--color-key-white-text);
+  background: var(--gradient-key-white);
 }
 
 .keyboard-register:first-child .white-key:first-child {
@@ -476,10 +521,10 @@ select:focus-visible {
 }
 
 .white-key:hover:not(:disabled) {
-  border-color: #8f7447;
+  border-color: var(--color-key-white-hover-border);
   background:
     linear-gradient(180deg, rgb(255 255 255 / 0.32), transparent 40%),
-    linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
+    var(--gradient-key-white);
   box-shadow: inset 0 -2px 0 rgb(74 57 40 / 0.12);
 }
 
@@ -490,7 +535,7 @@ select:focus-visible {
   z-index: 3;
   width: var(--black-key-width);
   height: var(--black-key-height);
-  border: 1px solid #120c07;
+  border: 1px solid var(--color-key-black-border);
   border-radius: 0 0 5px 5px;
   box-shadow:
     inset 0.18rem 0 0 rgb(255 255 255 / 0.045),
@@ -505,7 +550,7 @@ select:focus-visible {
       transparent 82%,
       rgb(0 0 0 / 0.26)
     ),
-    linear-gradient(#282016, #15100b 72%, #090705);
+    var(--gradient-key-black);
 }
 
 @container (max-width: 36rem) {
@@ -540,15 +585,15 @@ select:focus-visible {
 }
 
 .piano-key.is-scale-dimmed:not(.is-active):not(.is-generator) {
-  color: #7a603f;
+  color: var(--color-key-scale-dimmed-text);
 }
 
 .white-key.is-scale-dimmed:not(.is-active):not(.is-generator) {
-  background: linear-gradient(#ded0b8, #c1a77c 72%, #a08357);
+  background: var(--gradient-key-white-dimmed);
 }
 
 .black-key.is-scale-dimmed:not(.is-active):not(.is-generator) {
-  border-color: #2b241b;
+  border-color: var(--color-key-black-dimmed-border);
   background:
     linear-gradient(
       90deg,
@@ -567,15 +612,15 @@ select:focus-visible {
 
 .keyboard[data-scale-guide-style='highlight'] .white-key[data-scale-membership='in']:not(.is-active):not(.is-generator) {
   border-color: #705832;
-  color: #4a3928;
+  color: var(--color-key-white-text);
   background:
     linear-gradient(180deg, rgb(255 250 235 / 0.22), transparent 42%),
     linear-gradient(#f0dfbd, #ddc27d 72%, #c19943);
 }
 
 .keyboard[data-scale-guide-style='highlight'] .white-key[data-scale-membership='in']:not(.is-active):not(.is-generator):hover:not(:disabled) {
-  border-color: #ffcf5a;
-  color: #1b1408;
+  border-color: var(--color-accent-gold-strong);
+  color: var(--color-text-on-accent);
   background:
     linear-gradient(180deg, rgb(255 255 255 / 0.55), transparent 40%),
     linear-gradient(#f5df99, #e4be5a 72%, #cca033);
@@ -603,7 +648,7 @@ select:focus-visible {
 }
 
 .keyboard[data-scale-guide-style='highlight'] .black-key[data-scale-membership='in']:not(.is-active):not(.is-generator):hover:not(:disabled) {
-  border-color: #ffcf5a;
+  border-color: var(--color-accent-gold-strong);
   background:
     linear-gradient(
       90deg,
@@ -622,14 +667,14 @@ select:focus-visible {
 
 /* In highlight mode, suppress default hover on out-of-scale keys */
 .keyboard[data-scale-guide-style='highlight'] .white-key[data-scale-membership='out']:not(.is-active):not(.is-generator):hover:not(:disabled) {
-  border-color: #32281d;
+  border-color: var(--color-key-white-border);
   background:
-    linear-gradient(#f7ecd7, #ead9bd 72%, #d8c39f);
+    var(--gradient-key-white);
   box-shadow: none;
 }
 
 .keyboard[data-scale-guide-style='highlight'] .black-key[data-scale-membership='out']:not(.is-active):not(.is-generator):hover:not(:disabled) {
-  border-color: #120c07;
+  border-color: var(--color-key-black-border);
   background:
     linear-gradient(
       90deg,
@@ -638,7 +683,7 @@ select:focus-visible {
       transparent 82%,
       rgb(0 0 0 / 0.26)
     ),
-    linear-gradient(#282016, #15100b 72%, #090705);
+    var(--gradient-key-black);
   box-shadow:
     inset 0.18rem 0 0 rgb(255 255 255 / 0.045),
     inset -0.18rem 0 0 rgb(0 0 0 / 0.28),
@@ -647,10 +692,10 @@ select:focus-visible {
 }
 
 .piano-key.is-active {
-  border-color: #ffcf5a;
+  border-color: var(--color-accent-gold-strong);
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 42%), #c7932f;
-  color: #1b1408;
+    linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 42%), var(--color-accent-active);
+  color: var(--color-text-on-accent);
   box-shadow:
     inset 0 4px 0 rgb(27 20 8 / 0.22),
     inset 0 -5px 0 rgb(255 255 255 / 0.18);
@@ -658,12 +703,12 @@ select:focus-visible {
 }
 
 .piano-key.is-generator {
-  border-color: #f2a16f;
-  color: #1b0f0a;
+  border-color: var(--color-accent-generator);
+  color: var(--color-text-on-generator);
   box-shadow:
     inset 0 4px 0 rgb(27 15 10 / 0.2),
     inset 0 -5px 0 rgb(255 244 225 / 0.16),
-    0 0 0 2px rgb(242 161 111 / 0.46);
+    0 0 0 2px rgb(var(--color-accent-generator-rgb) / 0.46);
 }
 
 .white-key.is-generator {
@@ -724,7 +769,7 @@ select:focus-visible {
     linear-gradient(#8b4734, #5a281f 72%, #321713);
   box-shadow:
     inset 0 -4px 0 rgb(27 15 10 / 0.22),
-    0 0 0 2px rgb(242 161 111 / 0.46);
+    0 0 0 2px rgb(var(--color-accent-generator-rgb) / 0.46);
 }
 
 .black-key.is-generator:hover:not(:disabled) {
@@ -735,7 +780,7 @@ select:focus-visible {
 
 .audio-error {
   margin: 0;
-  color: #ffd08a;
+  color: var(--color-warning-text);
 }
 
 .instrument-toolbar {
@@ -768,7 +813,7 @@ select:focus-visible {
 
 .instrument-degree-panel h2 {
   margin: 0;
-  color: #e6d8bf;
+  color: var(--color-text-muted);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -899,7 +944,7 @@ select:focus-visible {
 
 .mode-description {
   margin: 0;
-  color: #c8bda8;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   line-height: 1.45;
 }
@@ -907,7 +952,7 @@ select:focus-visible {
 .mode-songs h3,
 .mode-progressions h3 {
   margin: 0 0 0.35rem;
-  color: #ffcf5a;
+  color: var(--color-accent-gold-strong);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -918,7 +963,7 @@ select:focus-visible {
 .mode-progressions ul {
   margin: 0;
   padding-left: 1.15rem;
-  color: #f7f2e8;
+  color: var(--color-text-primary);
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -931,8 +976,8 @@ select:focus-visible {
 .mode-progressions code {
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
-  background: #2d251c;
-  color: #ffcf5a;
+  background: var(--color-surface-code);
+  color: var(--color-accent-gold-strong);
   font-family: inherit;
   font-size: 0.92rem;
   font-weight: 700;

@@ -27,6 +27,7 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 - `music-core` es una frontera pura sin React, DOM ni audio.
 - La teoria inicial cubre 12 raices cromaticas y los 7 modos diatonicos para triadas.
 - El audio usa Tone.js detras de un adaptador: `Tone.start()` corre desde gestos explicitos del usuario, los reintentos siguen disponibles si el desbloqueo falla o queda suspendido, y una ruta de warm-up con `pointerup`/`click`/`keydown` ayuda a navegadores moviles a desbloquear audio desde eventos validos. Los instrumentos se preparan antes del primer gesto de reproduccion para que el fallback synth ya exista y `Tone.Sampler` pueda empezar a descargar muestras de piano sin bloquear el desbloqueo de autoplay. Un `Tone.Sampler` de piano se prefiere cuando las muestras estan listas y `PolySynth` queda como fallback si las muestras no estan disponibles o todavia no cargaron.
+- La UI usa tokens CSS semanticos en `:root` para la paleta oscura actual; esto prepara el camino para tema claro/oscuro sin agregar todavia selector de tema.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
 
 ## Audio y muestras
@@ -35,7 +36,13 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 - Esa CDN es una dependencia externa de realismo sonoro; no debe bloquear el estudio si falla o tarda.
 - Mientras el sampler no este listo, o si queda marcado como no disponible, el adaptador reproduce con `Tone.PolySynth`.
 - La UI no debe conocer si suena sampler o synth: solo envia eventos musicales ya resueltos.
-- Audio unlock state, retry behavior, and mobile activation listeners stay inside the `audio` adapter boundary; UI components only request playback or warm-up.
+- El estado de desbloqueo de audio, los reintentos y los listeners de activacion movil viven dentro de la frontera del adaptador `audio`; los componentes UI solo piden playback o warm-up.
+
+## UI y theming
+
+- La paleta visual actual vive como tokens CSS semanticos en `src/ui/styles.css`.
+- El primer paso de theming es conservar el tema oscuro actual con variables reutilizables; tema claro/oscuro e i18n quedan para una etapa posterior.
+- Los tokens priorizan superficies, texto, bordes, acentos, controles, teclado visual y estados activos/generadores.
 
 ## Despliegue
 
