@@ -162,8 +162,8 @@ function invertTriadNotes(chordNotes: NoteName[], inversion: TriadInversion): No
   return [...chordNotes.slice(rotation), ...chordNotes.slice(0, rotation)]
 }
 
-function findVoicedRoot(voicing: VoicedNote[], rootNote: NoteName): VoicedNote {
-  return voicing.find((voicedNote) => pitchClass(voicedNote.note) === pitchClass(rootNote)) ?? voicing[0]
+function rootPositionGeneratorNote(chordNotes: NoteName[], startingOctave: number): VoicedNote {
+  return voiceChordFrom(chordNotes, startingOctave)[0]
 }
 
 function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, inversion: TriadInversion): ChordResult {
@@ -182,7 +182,7 @@ function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, i
     notes,
     inversion: triadInversionLabels[inversion],
     voicing,
-    generatorNote: findVoicedRoot(voicing, notes[0]),
+    generatorNote: rootPositionGeneratorNote(notes, startingOctave),
   }
 }
 
@@ -213,12 +213,14 @@ export function resolveKeyboardTone(note: VoicedNote): KeyboardToneResult {
 
 export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, requestedOctave: number, inversion: TriadInversion = 'root'): ChordResult {
   const chord = buildTriadResult(key, degree, requestedOctave, inversion)
-  const voicing = clipVoicingToVisibleKeyboard(chord.voicing)
+  const generatorNote = rootPositionGeneratorNote(chord.notes, requestedOctave)
+  const clippedVoicing = clipVoicingToVisibleKeyboard(chord.voicing)
+  const voicing = clippedVoicing.length > 0 ? clippedVoicing : [generatorNote]
 
   return {
     ...chord,
     voicing,
-    generatorNote: findVoicedRoot(voicing, chord.notes[0]) ?? chord.generatorNote,
+    generatorNote,
   }
 }
 

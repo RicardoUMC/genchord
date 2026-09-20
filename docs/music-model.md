@@ -14,7 +14,7 @@ Este modelo define el vocabulario base. El prototipo actual fija un subconjunto 
 | Calidad de acorde | Tipo armonico: mayor, menor, disminuido, aumentado, dominante, suspendido, etc. |
 | Inversion | Que nota del acorde queda abajo: fundamental, tercera, quinta, septima. |
 | Voicing | Distribucion real de las notas: cerrado, abierto, duplicaciones, omisiones. |
-| Nota generadora | Nota del voicing que actua como raiz/disparador contextual del acorde activo. |
+| Nota generadora | Nota raiz/disparador contextual del acorde activo; no necesariamente es el bajo ni una nota sonando despues de aplicar inversion y recorte visual. |
 | Octava / registro | Zona del teclado donde se ubica o dispara el acorde. |
 | Sistema de notacion | Como se muestran notas y grados: ingles CDE, latino Do Re Mi, sostenidos/bemoles, numeros romanos. |
 
@@ -43,10 +43,10 @@ Este modelo define el vocabulario base. El prototipo actual fija un subconjunto 
 - El prototipo usa numerales romanos sensibles a calidad: mayor en mayuscula (`I`), menor en minuscula (`ii`) y disminuido con simbolo de grado (`vii°`, `ii°`).
 - Aeolian representa menor natural. Menor armonica y melodica quedan fuera del prototipo actual.
 - La visualizacion de teclado resalta solo tonos del acorde activo; no resalta escala completa ni grados disponibles.
-- La visualizacion de teclado resalta solo las notas exactas del voicing activo, no cada repeticion de la misma clase de altura entre C3-C6; dentro de ese voicing, la nota generadora lleva un acento visual propio.
+- La visualizacion de teclado resalta las notas exactas del voicing activo, no cada repeticion de la misma clase de altura entre C3-C6; la nota generadora lleva un acento visual propio y permanece anclada al disparador contextual aunque la inversion mueva el bajo.
 - Los acordes disparados por grados usan por defecto un voicing ascendente desde el registro C4 en adelante; el control de registro permite mover esos disparos a C3, C4 o C5 sin cambiar la identidad abstracta del acorde. Si una triada cruza C, la nota superior sube a la siguiente octava. El control de inversion permite posicion fundamental, primera inversion y segunda inversion; cambia el bajo/voicing pero conserva identidad, grado, calidad y notas abstractas del acorde.
 - Las restricciones de escala/contexto aplican a los grados. El teclado visual es permisivo: una tecla diatonica puede disparar el grado contextual correspondiente; una tecla fuera de escala o sin contexto sigue sonando como nota individual y se resalta sola.
-- Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema no reubica el acorde a una octava inferior: conserva el registro disparado y reproduce/muestra solo las notas del voicing que existen dentro del teclado visible.
+- Si una tecla visual diatonica alta haria que la triada salga de C3-C6, el sistema no reubica el acorde a una octava inferior: conserva el registro disparado y reproduce/muestra solo las notas del voicing que existen dentro del teclado visible. Si una inversion deja todo el voicing fuera del rango visible, conserva la tecla generadora como nota reproducible para evitar silencio y marcadores fuera de rango.
 - La escritura del prototipo respeta letras de escala cuando puede y evita dobles alteraciones; nombres como `E#`, `B#`, `Cb` o `Fb` quedan simplificados para una capa de notacion mas completa.
 
 ## Modos diatónicos

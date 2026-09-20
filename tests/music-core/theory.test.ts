@@ -178,10 +178,10 @@ describe('music-core theory', () => {
 
     expect(firstInversion).toMatchObject({ name: 'C major', degree: 'I', quality: 'major', notes: ['C', 'E', 'G'], inversion: 'first inversion' })
     expect(voicingNames(firstInversion)).toBe('E4 · G4 · C5')
-    expect(firstInversion.generatorNote).toEqual({ note: 'C', octave: 5 })
+    expect(firstInversion.generatorNote).toEqual({ note: 'C', octave: 4 })
     expect(secondInversion).toMatchObject({ name: 'C major', degree: 'I', quality: 'major', notes: ['C', 'E', 'G'], inversion: 'second inversion' })
     expect(voicingNames(secondInversion)).toBe('G4 · C5 · E5')
-    expect(secondInversion.generatorNote).toEqual({ note: 'C', octave: 5 })
+    expect(secondInversion.generatorNote).toEqual({ note: 'C', octave: 4 })
   })
 
   it('finds a clicked keyboard note degree in the current key by pitch class', () => {
@@ -219,7 +219,16 @@ describe('music-core theory', () => {
     expect(chord.notes).toEqual(['D', 'F', 'A'])
     expect(chord.inversion).toBe('first inversion')
     expect(voicingNames(chord)).toBe('F4 · A4 · D5')
-    expect(chord.generatorNote).toEqual({ note: 'D', octave: 5 })
+    expect(chord.generatorNote).toEqual({ note: 'D', octave: 4 })
+  })
+
+  it('keeps an inverted visual-keyboard edge chord anchored to the clicked generator when the voicing clips out of range', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, 6, 'first')
+
+    expect(chord.notes).toEqual(['C', 'E', 'G'])
+    expect(chord.inversion).toBe('first inversion')
+    expect(voicingNames(chord)).toBe('C6')
+    expect(chord.generatorNote).toEqual({ note: 'C', octave: 6 })
   })
 
   it('resolves a visual keyboard tone as a single playable note', () => {

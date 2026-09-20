@@ -30,7 +30,7 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 
 ## Jerarquia de experiencia
 
-El teclado debe ser el elemento visual y funcional primario. Contexto, grados y resultado actual son configuracion de sonido/estudio alrededor del instrumento, no contenido tipo landing page ni bloques principales separados. The visible study flow should keep the active result above the keyboard: choose musical context → hold a degree or key → identify the chord or single tone in the `Now Studying` strip → see and hear the exact notes on the keyboard. Dentro del voicing activo, la nota generadora se diferencia ligeramente de las demas notas para conectar el disparador con el acorde resultante; cuando se toca una nota individual, esa tecla puede ser a la vez activa y generadora.
+El teclado debe ser el elemento visual y funcional primario. Contexto, grados y resultado actual son configuracion de sonido/estudio alrededor del instrumento, no contenido tipo landing page ni bloques principales separados. The visible study flow should keep the active result above the keyboard: choose musical context → hold a degree or key → identify the chord or single tone in the `Now Studying` strip → see and hear the exact notes on the keyboard. La nota generadora se diferencia ligeramente de las demas notas para conectar el disparador con el acorde resultante; con inversiones, el marcador permanece en el disparador contextual aunque el bajo/voicing se mueva. Cuando se toca una nota individual, esa tecla puede ser a la vez activa y generadora.
 
 ## Despues del MVP
 

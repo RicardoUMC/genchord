@@ -75,7 +75,7 @@ describe('GenChord study UI', () => {
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'E', octave: 4 }, { note: 'G', octave: 4 }, { note: 'C', octave: 5 }] }))
     expect(screen.getByRole('button', { name: 'E4 chord tone pressed' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'G4 chord tone pressed' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'C5 generator note pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'C4 generator note pressed' })).toBeInTheDocument()
   })
 
   it('applies selected degree register to degree display, keyboard voicing, and playback', async () => {
@@ -131,7 +131,7 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('second inversion')).toBeInTheDocument()
     expect(screen.getByText('A4 · D5 · F5')).toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'A', octave: 4 }, { note: 'D', octave: 5 }, { note: 'F', octave: 5 }] }))
-    expect(screen.getByRole('button', { name: 'D5 generator note pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'D4 generator note pressed' })).toBeInTheDocument()
   })
 
   it('renders all visible keyboard keys in register groups', () => {
@@ -446,6 +446,35 @@ describe('GenChord study UI', () => {
     expect(screen.queryByText('Partial voicing: visible keyboard notes only.')).not.toBeInTheDocument()
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 6 }] }))
     expect(screen.getByRole('button', { name: 'C6 generator note pressed' })).toBeInTheDocument()
+  })
+
+  it('keeps an inverted edge keyboard chord on the clicked generator instead of crashing or marking an off-range note', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/triad inversion/i), 'first')
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'C6' }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getAllByText('C Major').length).toBeGreaterThan(0)
+    expect(screen.getByText('first inversion')).toBeInTheDocument()
+    expect(screen.getAllByText('C6').length).toBeGreaterThan(0)
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 6 }] }))
+    expect(screen.getByRole('button', { name: 'C6 generator note pressed' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'C5 generator note pressed' })).not.toBeInTheDocument()
+  })
+
+  it('releases held voicings and clears highlights when inversion changes', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    fireEvent.pointerDown(screen.getByRole('button', { name: /I1 \/ Q/i }), { pointerId: 1, buttons: 1 })
+    await user.selectOptions(screen.getByLabelText(/triad inversion/i), 'second')
+
+    expect(releaseAllVoicings).toHaveBeenCalled()
+    expect(screen.queryByText('C · E · G')).not.toBeInTheDocument()
+    expect(within(screen.getByLabelText(/piano keyboard/i)).queryByTestId('generator-piano-key')).not.toBeInTheDocument()
   })
 
   it('keeps overlapping held inputs active when one trigger is released', async () => {

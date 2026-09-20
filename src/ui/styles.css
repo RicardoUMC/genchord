@@ -837,9 +837,9 @@ select:focus-visible {
 
 .instrument-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, max-content);
+  grid-template-columns: minmax(24rem, 1fr) minmax(18rem, 0.8fr);
   gap: 0.75rem;
-  align-items: end;
+  align-items: stretch;
   margin-bottom: 0.6rem;
   padding: 0.75rem;
   border: 1px solid rgb(255 255 255 / 0.06);
@@ -892,16 +892,26 @@ select:focus-visible {
 
 .instrument-options {
   display: grid;
-  justify-items: end;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: stretch;
   align-content: end;
   gap: 0.55rem;
   min-width: 0;
 }
 
+.instrument-options .field {
+  min-width: 0;
+}
+
 .instrument-status-slot {
+  grid-column: 1 / -1;
   max-width: 18rem;
   font-size: 0.88rem;
   line-height: 1.25;
+}
+
+.instrument-options .scale-guide-field {
+  grid-column: 1 / -1;
 }
 
 .keyboard-guidance {
@@ -958,6 +968,10 @@ select:focus-visible {
     grid-template-columns: 1fr;
     align-items: stretch;
     padding: 0.65rem;
+  }
+
+  .instrument-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .now-studying {

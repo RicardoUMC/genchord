@@ -204,6 +204,7 @@ export function KeyboardViz({ activeInputs, guidance, scaleNotes, scaleGuideStyl
     const keyId = `${key.note}${key.octave}`
     const active = activeVoicing.has(keyId)
     const generator = generatorKeys.has(keyId)
+    const pressed = active || generator
     const outOfScale = inScaleNotes !== null && !inScaleNotes.has(key.note)
     const dimmedOutOfScale = scaleGuideStyle === 'dim' && outOfScale
 
@@ -237,7 +238,7 @@ export function KeyboardViz({ activeInputs, guidance, scaleNotes, scaleGuideStyl
             onStopKey(`keyboard:key:${keyId}`)
           }
         }}
-        aria-label={`${key.note}${key.octave}${generator ? ' generator note' : active ? ' chord tone' : ''}${active ? ' pressed' : ''}`}
+        aria-label={`${key.note}${key.octave}${generator ? ' generator note' : active ? ' chord tone' : ''}${pressed ? ' pressed' : ''}`}
       >
         {!key.accidental && `${key.note}${key.octave}`}
         {generator && <span className={`source-marker ${key.accidental ? 'source-marker-on-black' : 'source-marker-on-white'}`} aria-hidden="true">●</span>}
