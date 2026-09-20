@@ -184,6 +184,14 @@ describe('music-core theory', () => {
     expect(secondInversion.generatorNote).toEqual({ note: 'C', octave: 4 })
   })
 
+  it('inverts from the root-position voicing so high-root chords do not drop octaves', () => {
+    const firstInversion = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 6, 4, 'first')
+
+    expect(firstInversion).toMatchObject({ name: 'A minor', degree: 'vi', quality: 'minor', notes: ['A', 'C', 'E'], inversion: 'first inversion' })
+    expect(voicingNames(firstInversion)).toBe('C5 · E5 · A5')
+    expect(firstInversion.generatorNote).toEqual({ note: 'A', octave: 4 })
+  })
+
   it('finds a clicked keyboard note degree in the current key by pitch class', () => {
     expect(findDiatonicDegreeForNote({ root: 'C', mode: 'ionian' }, 'D')).toBe(2)
     expect(findDiatonicDegreeForNote({ root: 'C', mode: 'ionian' }, 'C#')).toBeNull()

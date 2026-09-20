@@ -78,12 +78,12 @@ describe('GenChord study UI', () => {
     expect(screen.getByRole('button', { name: 'C4 generator note pressed' })).toBeInTheDocument()
   })
 
-  it('applies selected degree register to degree display, keyboard voicing, and playback', async () => {
+  it('applies selected chord octave to degree display, keyboard voicing, and playback', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/degree register/i), '3')
+    await user.selectOptions(screen.getByLabelText(/chord octave/i), '3')
     fireEvent.pointerDown(screen.getByRole('button', { name: /V5 \/ T/i }), { pointerId: 1, buttons: 1 })
 
     expect(screen.getByText('G major')).toBeInTheDocument()
@@ -92,12 +92,12 @@ describe('GenChord study UI', () => {
     expect(screen.getByRole('button', { name: 'G3 generator note pressed' })).toBeInTheDocument()
   })
 
-  it('applies selected degree register to physical degree shortcuts', async () => {
+  it('applies selected chord octave to physical degree shortcuts', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/degree register/i), '5')
+    await user.selectOptions(screen.getByLabelText(/chord octave/i), '5')
     fireEvent.keyDown(window, { code: 'Digit2' })
 
     expect(screen.getByText('D minor')).toBeInTheDocument()
@@ -105,12 +105,12 @@ describe('GenChord study UI', () => {
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 5 }, { note: 'F', octave: 5 }, { note: 'A', octave: 5 }] }))
   })
 
-  it('keeps visual-keyboard clicks in the clicked register when degree register changes', async () => {
+  it('keeps visual-keyboard clicks in the clicked register when chord octave changes', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/degree register/i), '5')
+    await user.selectOptions(screen.getByLabelText(/chord octave/i), '5')
     fireEvent.pointerDown(screen.getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
 
     expect(screen.getByText('D minor')).toBeInTheDocument()
@@ -165,7 +165,7 @@ describe('GenChord study UI', () => {
 
     expect(keyboard).toHaveAttribute('data-scale-guide-style', 'dim')
     expect(scaleGuideStyle).toHaveValue('dim')
-    expect(screen.getByLabelText(/degree register/i)).toHaveValue('4')
+    expect(screen.getByLabelText(/chord octave/i)).toHaveValue('4')
     expect(scaleGuideStyle.closest('.instrument-stage')).toContainElement(scaleGuideStyle)
     expect(degreePanel.closest('.instrument-stage')).toContainElement(degreePanel)
     expect(controls).not.toContainElement(scaleGuideStyle)

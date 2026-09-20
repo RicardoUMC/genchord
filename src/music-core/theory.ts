@@ -156,14 +156,22 @@ export function voiceChordFrom(chordNotes: NoteName[], startingOctave = 4): Voic
   })
 }
 
-function invertTriadNotes(chordNotes: NoteName[], inversion: TriadInversion): NoteName[] {
-  const rotation = triadInversionRotations[inversion]
-
-  return [...chordNotes.slice(rotation), ...chordNotes.slice(0, rotation)]
-}
-
 function rootPositionGeneratorNote(chordNotes: NoteName[], startingOctave: number): VoicedNote {
   return voiceChordFrom(chordNotes, startingOctave)[0]
+}
+
+function applyInversionToVoicing(rootVoicing: VoicedNote[], inversion: TriadInversion): VoicedNote[] {
+  if (inversion === 'root') return rootVoicing
+
+  const rotation = triadInversionRotations[inversion]
+  const rotated = [...rootVoicing.slice(rotation), ...rootVoicing.slice(0, rotation)]
+
+  // Bump octave for notes that wrapped around
+  for (let i = rotated.length - rotation; i < rotated.length; i++) {
+    rotated[i] = { ...rotated[i], octave: rotated[i].octave + 1 }
+  }
+
+  return rotated
 }
 
 function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, inversion: TriadInversion): ChordResult {
@@ -171,7 +179,9 @@ function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, i
   const degreeIndex = degree - 1
   const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
   const quality = qualitiesByMode[key.mode][degreeIndex]
-  const voicing = voiceChordFrom(invertTriadNotes(notes, inversion), startingOctave)
+
+  const rootVoicing = voiceChordFrom(notes, startingOctave)
+  const voicing = applyInversionToVoicing(rootVoicing, inversion)
 
   return {
     kind: 'chord',
@@ -182,7 +192,7 @@ function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, i
     notes,
     inversion: triadInversionLabels[inversion],
     voicing,
-    generatorNote: rootPositionGeneratorNote(notes, startingOctave),
+    generatorNote: rootVoicing[0],
   }
 }
 

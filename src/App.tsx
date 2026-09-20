@@ -146,14 +146,14 @@ export default function App() {
               </select>
             </label>
             <label className="field degree-register-field">
-              Degree register
+              Chord octave
               <select
                 value={state.degreeChordOctave}
                 onChange={(event) => changeDegreeChordOctave(Number(event.target.value) as DegreeChordOctave)}
               >
-                <option value={3}>C3 register</option>
-                <option value={4}>C4 register</option>
-                <option value={5}>C5 register</option>
+                <option value={3}>Octave 3</option>
+                <option value={4}>Octave 4</option>
+                <option value={5}>Octave 5</option>
               </select>
             </label>
           </div>
