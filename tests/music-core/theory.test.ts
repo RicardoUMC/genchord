@@ -164,6 +164,14 @@ describe('music-core theory', () => {
     expect(voicingNames(chord)).toBe('G4 · B4 · D5')
   })
 
+  it('voices degree-triggered chords from the requested register', () => {
+    const lowRegister = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 5, 3)
+    const highRegister = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 5, 5)
+
+    expect(voicingNames(lowRegister)).toBe('G3 · B3 · D4')
+    expect(voicingNames(highRegister)).toBe('G5 · B5 · D6')
+  })
+
   it('keeps chord identity while applying first and second inversion voicings', () => {
     const firstInversion = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 1, 4, 'first')
     const secondInversion = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 1, 4, 'second')

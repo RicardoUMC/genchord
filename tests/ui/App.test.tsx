@@ -78,6 +78,47 @@ describe('GenChord study UI', () => {
     expect(screen.getByRole('button', { name: 'C5 generator note pressed' })).toBeInTheDocument()
   })
 
+  it('applies selected degree register to degree display, keyboard voicing, and playback', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/degree register/i), '3')
+    fireEvent.pointerDown(screen.getByRole('button', { name: /V5 \/ T/i }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('G major')).toBeInTheDocument()
+    expect(screen.getByText('G3 · B3 · D4')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'G', octave: 3 }, { note: 'B', octave: 3 }, { note: 'D', octave: 4 }] }))
+    expect(screen.getByRole('button', { name: 'G3 generator note pressed' })).toBeInTheDocument()
+  })
+
+  it('applies selected degree register to physical degree shortcuts', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/degree register/i), '5')
+    fireEvent.keyDown(window, { code: 'Digit2' })
+
+    expect(screen.getByText('D minor')).toBeInTheDocument()
+    expect(screen.getByText('D5 · F5 · A5')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 5 }, { note: 'F', octave: 5 }, { note: 'A', octave: 5 }] }))
+  })
+
+  it('keeps visual-keyboard clicks in the clicked register when degree register changes', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/degree register/i), '5')
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('D minor')).toBeInTheDocument()
+    expect(screen.getByText('D4 · F4 · A4')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 4 }, { note: 'F', octave: 4 }, { note: 'A', octave: 4 }] }))
+    expect(screen.queryByText('D5 · F5 · A5')).not.toBeInTheDocument()
+  })
+
   it('applies selected triad inversion to contextual visual-keyboard chords', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -124,6 +165,7 @@ describe('GenChord study UI', () => {
 
     expect(keyboard).toHaveAttribute('data-scale-guide-style', 'dim')
     expect(scaleGuideStyle).toHaveValue('dim')
+    expect(screen.getByLabelText(/degree register/i)).toHaveValue('4')
     expect(scaleGuideStyle.closest('.instrument-stage')).toContainElement(scaleGuideStyle)
     expect(degreePanel.closest('.instrument-stage')).toContainElement(degreePanel)
     expect(controls).not.toContainElement(scaleGuideStyle)

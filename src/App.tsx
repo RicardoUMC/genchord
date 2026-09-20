@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { initAudio, installAudioWarmup, prepareAudioInstruments, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
-import type { ChordResult, DegreeNum, Mode, NoteName, TriadInversion, VoicedNote } from './music-core'
-import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
+import type { ChordResult, DegreeChordOctave, DegreeNum, Mode, NoteName, TriadInversion, VoicedNote } from './music-core'
+import { buildScale, findDiatonicDegreeForNote, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import type { ScaleGuideStyle } from './ui/state'
 import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, MusicalContext, useStudyState } from './ui'
 
@@ -92,6 +92,11 @@ export default function App() {
     dispatch({ type: 'setInversion', inversion })
   }
 
+  const changeDegreeChordOctave = (degreeChordOctave: DegreeChordOctave) => {
+    releaseAllVoicings()
+    dispatch({ type: 'setDegreeChordOctave', degreeChordOctave })
+  }
+
   const triggerKeyboardKey = (triggerId: string, key: VoicedNote) => {
     const degree = activeKey ? findDiatonicDegreeForNote(activeKey, key.note) : null
 
@@ -116,7 +121,7 @@ export default function App() {
       <section className="instrument-stage" aria-labelledby="chord-display-heading">
         <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
         <div className="instrument-toolbar">
-          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} inversion={state.inversion} onStart={triggerChord} onStop={releaseHeldVoicing} />
+          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} inversion={state.inversion} degreeChordOctave={state.degreeChordOctave} onStart={triggerChord} onStop={releaseHeldVoicing} />
           <div className="instrument-options">
             {audioError && <p className="audio-error instrument-status-slot" role="alert">{audioError}</p>}
             <label className="field scale-guide-field">
@@ -138,6 +143,17 @@ export default function App() {
                 <option value="root">Root position</option>
                 <option value="first">First inversion</option>
                 <option value="second">Second inversion</option>
+              </select>
+            </label>
+            <label className="field degree-register-field">
+              Degree register
+              <select
+                value={state.degreeChordOctave}
+                onChange={(event) => changeDegreeChordOctave(Number(event.target.value) as DegreeChordOctave)}
+              >
+                <option value={3}>C3 register</option>
+                <option value={4}>C4 register</option>
+                <option value={5}>C5 register</option>
               </select>
             </label>
           </div>

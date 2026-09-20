@@ -342,6 +342,11 @@ select:focus-visible {
   min-width: min(18rem, 100%);
 }
 
+.inversion-field,
+.degree-register-field {
+  min-width: min(13rem, 100%);
+}
+
 .degree-grid {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.5rem;
