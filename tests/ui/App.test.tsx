@@ -129,8 +129,8 @@ describe('GenChord study UI', () => {
 
     expect(screen.getByText('D minor')).toBeInTheDocument()
     expect(screen.getByText('second inversion')).toBeInTheDocument()
-    expect(screen.getByText('A4 · D5 · F5')).toBeInTheDocument()
-    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'A', octave: 4 }, { note: 'D', octave: 5 }, { note: 'F', octave: 5 }] }))
+    expect(screen.getByText('A3 · D4 · F4')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'A', octave: 3 }, { note: 'D', octave: 4 }, { note: 'F', octave: 4 }] }))
     expect(screen.getByRole('button', { name: 'D4 generator note pressed' })).toBeInTheDocument()
   })
 
@@ -458,10 +458,11 @@ describe('GenChord study UI', () => {
 
     expect(screen.getAllByText('C Major').length).toBeGreaterThan(0)
     expect(screen.getByText('first inversion')).toBeInTheDocument()
-    expect(screen.getAllByText('C6').length).toBeGreaterThan(0)
-    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'C', octave: 6 }] }))
+    expect(screen.getByText('E5 · G5 · C6')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'E', octave: 5 }, { note: 'G', octave: 5 }, { note: 'C', octave: 6 }] }))
     expect(screen.getByRole('button', { name: 'C6 generator note pressed' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'C5 generator note pressed' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'E5 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'G5 chord tone pressed' })).toBeInTheDocument()
   })
 
   it('releases held voicings and clears highlights when inversion changes', async () => {

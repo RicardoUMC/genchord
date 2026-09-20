@@ -101,7 +101,7 @@ export default function App() {
     const degree = activeKey ? findDiatonicDegreeForNote(activeKey, key.note) : null
 
     if (activeKey && degree && state.autoChordsEnabled) {
-      triggerChord(triggerId, degree, resolveVisibleKeyboardTriad(activeKey, degree, key.octave, state.inversion))
+      triggerChord(triggerId, degree, resolveVisibleKeyboardTriad(activeKey, degree, key, state.inversion))
       return
     }
 
@@ -121,7 +121,7 @@ export default function App() {
       <section className="instrument-stage" aria-labelledby="chord-display-heading">
         <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
         <div className="instrument-toolbar">
-          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} inversion={state.inversion} degreeChordOctave={state.degreeChordOctave} onStart={triggerChord} onStop={releaseHeldVoicing} />
+          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegrees={state.activeDegrees} inversion={state.inversion} degreeChordOctave={state.degreeChordOctave} onStart={triggerChord} onStop={releaseHeldVoicing} />
           <div className="instrument-options">
             {audioError && <p className="audio-error instrument-status-slot" role="alert">{audioError}</p>}
             <label className="field scale-guide-field">

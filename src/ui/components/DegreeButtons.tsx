@@ -30,14 +30,14 @@ function isEditableTarget(target: EventTarget | null) {
 interface DegreeButtonsProps {
   className?: string
   activeKey: Key | null
-  activeDegree: DegreeNum | null
+  activeDegrees: DegreeNum[]
   inversion: TriadInversion
   degreeChordOctave: DegreeChordOctave
   onStart: (triggerId: string, degree: DegreeNum, chord: ChordResult) => void
   onStop: (triggerId: string) => void
 }
 
-export function DegreeButtons({ className, activeKey, activeDegree, inversion, degreeChordOctave, onStart, onStop }: DegreeButtonsProps) {
+export function DegreeButtons({ className, activeKey, activeDegrees, inversion, degreeChordOctave, onStart, onStop }: DegreeButtonsProps) {
   const pressedShortcutCodes = useRef(new Set<string>())
   const activeKeyRef = useRef(activeKey)
   const inversionRef = useRef(inversion)
@@ -134,7 +134,7 @@ export function DegreeButtons({ className, activeKey, activeDegree, inversion, d
             <button
               key={degree}
               type="button"
-              className={activeDegree === degree ? 'is-active' : ''}
+              className={activeDegrees.includes(degree) ? 'is-active' : ''}
               disabled={!activeKey}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture?.(event.pointerId)

@@ -174,6 +174,60 @@ function applyInversionToVoicing(rootVoicing: VoicedNote[], inversion: TriadInve
   return rotated
 }
 
+function applyInversionToNotes(notes: NoteName[], inversion: TriadInversion): NoteName[] {
+  if (inversion === 'root') return notes
+
+  const rotation = triadInversionRotations[inversion]
+
+  return [...notes.slice(rotation), ...notes.slice(0, rotation)]
+}
+
+function voiceChordAroundAnchor(rotatedNotes: NoteName[], anchorNote: VoicedNote): VoicedNote[] {
+  const anchorPitch = pitchClass(anchorNote.note)
+  const anchorIndex = rotatedNotes.findIndex((n) => pitchClass(n) === anchorPitch)
+
+  if (anchorIndex === -1) {
+    // Fallback: voice upward from anchor octave if anchor pitch is not in chord
+    return voiceChordFrom(rotatedNotes, anchorNote.octave)
+  }
+
+  const voicing: VoicedNote[] = new Array(rotatedNotes.length)
+
+  voicing[anchorIndex] = { note: rotatedNotes[anchorIndex], octave: anchorNote.octave }
+
+  // Expand upward (higher notes)
+  for (let i = anchorIndex + 1; i < rotatedNotes.length; i++) {
+    const note = rotatedNotes[i]
+    let octave = voicing[i - 1].octave
+    let noteMidi = midiNumber({ note, octave })
+    const prevMidi = midiNumber(voicing[i - 1])
+
+    while (noteMidi <= prevMidi) {
+      octave += 1
+      noteMidi = midiNumber({ note, octave })
+    }
+
+    voicing[i] = { note, octave }
+  }
+
+  // Expand downward (lower notes)
+  for (let i = anchorIndex - 1; i >= 0; i--) {
+    const note = rotatedNotes[i]
+    let octave = voicing[i + 1].octave
+    let noteMidi = midiNumber({ note, octave })
+    const nextMidi = midiNumber(voicing[i + 1])
+
+    while (noteMidi >= nextMidi) {
+      octave -= 1
+      noteMidi = midiNumber({ note, octave })
+    }
+
+    voicing[i] = { note, octave }
+  }
+
+  return voicing
+}
+
 function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, inversion: TriadInversion): ChordResult {
   const scale = buildScale(key)
   const degreeIndex = degree - 1
@@ -221,16 +275,26 @@ export function resolveKeyboardTone(note: VoicedNote): KeyboardToneResult {
   }
 }
 
-export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, requestedOctave: number, inversion: TriadInversion = 'root'): ChordResult {
-  const chord = buildTriadResult(key, degree, requestedOctave, inversion)
-  const generatorNote = rootPositionGeneratorNote(chord.notes, requestedOctave)
-  const clippedVoicing = clipVoicingToVisibleKeyboard(chord.voicing)
-  const voicing = clippedVoicing.length > 0 ? clippedVoicing : [generatorNote]
+export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, anchorNote: VoicedNote, inversion: TriadInversion = 'root'): ChordResult {
+  const scale = buildScale(key)
+  const degreeIndex = degree - 1
+  const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
+  const quality = qualitiesByMode[key.mode][degreeIndex]
+
+  const rotatedNotes = applyInversionToNotes(notes, inversion)
+  const voicing = voiceChordAroundAnchor(rotatedNotes, anchorNote)
+  const clippedVoicing = clipVoicingToVisibleKeyboard(voicing)
 
   return {
-    ...chord,
-    voicing,
-    generatorNote,
+    kind: 'chord',
+    name: `${notes[0]} ${quality}`,
+    degree: romansByMode[key.mode][degreeIndex],
+    degreeNum: degree,
+    quality,
+    notes,
+    inversion: triadInversionLabels[inversion],
+    voicing: clippedVoicing.length > 0 ? clippedVoicing : [anchorNote],
+    generatorNote: anchorNote,
   }
 }
 

@@ -8,7 +8,7 @@ interface StudyState {
   inversion: TriadInversion
   degreeChordOctave: DegreeChordOctave
   scaleGuideStyle: ScaleGuideStyle
-  activeDegree: DegreeNum | null
+  activeDegrees: DegreeNum[]
   activeStudy: StudyResult | null
   activeInputs: Record<string, StudyResult>
   guidance: string | null
@@ -36,20 +36,26 @@ const initialState: StudyState = {
   inversion: 'root',
   degreeChordOctave: 4,
   scaleGuideStyle: 'dim',
-  activeDegree: null,
+  activeDegrees: [],
   activeStudy: null,
   activeInputs: {},
   guidance: 'Choose a context, then trigger a degree or play the keyboard.',
 }
 
 function clearChord(state: StudyState): StudyState {
-  return { ...state, activeDegree: null, activeStudy: null, activeInputs: {} }
+  return { ...state, activeDegrees: [], activeStudy: null, activeInputs: {} }
 }
 
-function latestActiveDegree(activeInputs: Record<string, StudyResult>): DegreeNum | null {
-  const activeChords = Object.values(activeInputs).filter((input): input is ChordResult => input.kind === 'chord')
+function activeDegreesFromInputs(activeInputs: Record<string, StudyResult>): DegreeNum[] {
+  const degrees = new Set<DegreeNum>()
 
-  return activeChords[activeChords.length - 1]?.degreeNum ?? null
+  for (const input of Object.values(activeInputs)) {
+    if (input.kind === 'chord') {
+      degrees.add(input.degreeNum)
+    }
+  }
+
+  return Array.from(degrees)
 }
 
 function latestActiveStudy(activeInputs: Record<string, StudyResult>): StudyResult | null {
@@ -72,17 +78,23 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
       return clearChord({ ...state, degreeChordOctave: action.degreeChordOctave })
     case 'setScaleGuideStyle':
       return { ...state, scaleGuideStyle: action.scaleGuideStyle }
-    case 'triggerChord':
-      return { ...state, activeDegree: action.degree, activeStudy: action.chord, activeInputs: { ...state.activeInputs, [action.triggerId]: action.chord }, guidance: null }
-    case 'triggerKeyboardTone':
-      return { ...state, activeDegree: latestActiveDegree(state.activeInputs), activeStudy: action.tone, activeInputs: { ...state.activeInputs, [action.triggerId]: action.tone }, guidance: null }
+    case 'triggerChord': {
+      const activeInputs = { ...state.activeInputs, [action.triggerId]: action.chord }
+
+      return { ...state, activeDegrees: activeDegreesFromInputs(activeInputs), activeStudy: action.chord, activeInputs, guidance: null }
+    }
+    case 'triggerKeyboardTone': {
+      const activeInputs = { ...state.activeInputs, [action.triggerId]: action.tone }
+
+      return { ...state, activeDegrees: activeDegreesFromInputs(activeInputs), activeStudy: action.tone, activeInputs, guidance: null }
+    }
     case 'releaseHeldInput': {
       const { [action.triggerId]: _releasedInput, ...activeInputs } = state.activeInputs
 
-      return { ...state, activeDegree: latestActiveDegree(activeInputs), activeStudy: latestActiveStudy(activeInputs) ?? state.activeStudy, activeInputs }
+      return { ...state, activeDegrees: activeDegreesFromInputs(activeInputs), activeStudy: latestActiveStudy(activeInputs) ?? state.activeStudy, activeInputs }
     }
     case 'releaseAllInputs':
-      return { ...state, activeDegree: null, activeInputs: {} }
+      return { ...state, activeDegrees: [], activeInputs: {} }
     case 'setGuidance':
       return { ...state, guidance: action.guidance }
   }

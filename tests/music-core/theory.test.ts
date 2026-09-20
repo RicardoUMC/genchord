@@ -201,14 +201,14 @@ describe('music-core theory', () => {
     expect(clipVoicingToVisibleKeyboard([{ note: 'B', octave: 5 }, { note: 'D', octave: 6 }, { note: 'F', octave: 6 }])).toEqual([{ note: 'B', octave: 5 }])
     expect(clipVoicingToVisibleKeyboard([{ note: 'C', octave: 6 }, { note: 'E', octave: 6 }, { note: 'G', octave: 6 }])).toEqual([{ note: 'C', octave: 6 }])
 
-    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 7, 5)
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 7, { note: 'B', octave: 5 })
 
     expect(voicingNames(chord)).toBe('B5')
     expect(chord.generatorNote).toEqual({ note: 'B', octave: 5 })
   })
 
   it('keeps only the selected C6 generator note when the rest of the triad is above the keyboard', () => {
-    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, 6)
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 6 })
 
     expect(chord.notes).toEqual(['C', 'E', 'G'])
     expect(voicingNames(chord)).toBe('C6')
@@ -216,26 +216,41 @@ describe('music-core theory', () => {
   })
 
   it('keeps low and middle keyboard-triggered triads at the requested visible register', () => {
-    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, 4)
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, { note: 'D', octave: 4 })
 
     expect(voicingNames(chord)).toBe('D4 · F4 · A4')
   })
 
-  it('applies inversion to visual-keyboard triads in the requested register', () => {
-    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, 4, 'first')
+  it('anchors keyboard triads around the pressed key for inversions', () => {
+    const firstInversion = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 4 }, 'first')
+    const secondInversion = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 4 }, 'second')
+
+    expect(firstInversion.notes).toEqual(['C', 'E', 'G'])
+    expect(firstInversion.inversion).toBe('first inversion')
+    expect(voicingNames(firstInversion)).toBe('E3 · G3 · C4')
+    expect(firstInversion.generatorNote).toEqual({ note: 'C', octave: 4 })
+
+    expect(secondInversion.notes).toEqual(['C', 'E', 'G'])
+    expect(secondInversion.inversion).toBe('second inversion')
+    expect(voicingNames(secondInversion)).toBe('G3 · C4 · E4')
+    expect(secondInversion.generatorNote).toEqual({ note: 'C', octave: 4 })
+  })
+
+  it('anchors keyboard triad inversions to the clicked note even when it is not the root', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, { note: 'D', octave: 4 }, 'first')
 
     expect(chord.notes).toEqual(['D', 'F', 'A'])
     expect(chord.inversion).toBe('first inversion')
-    expect(voicingNames(chord)).toBe('F4 · A4 · D5')
+    expect(voicingNames(chord)).toBe('F3 · A3 · D4')
     expect(chord.generatorNote).toEqual({ note: 'D', octave: 4 })
   })
 
-  it('keeps an inverted visual-keyboard edge chord anchored to the clicked generator when the voicing clips out of range', () => {
-    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, 6, 'first')
+  it('keeps an inverted visual-keyboard chord anchored when the voicing clips out of range', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 6 }, 'first')
 
     expect(chord.notes).toEqual(['C', 'E', 'G'])
     expect(chord.inversion).toBe('first inversion')
-    expect(voicingNames(chord)).toBe('C6')
+    expect(voicingNames(chord)).toBe('E5 · G5 · C6')
     expect(chord.generatorNote).toEqual({ note: 'C', octave: 6 })
   })
 
