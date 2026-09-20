@@ -103,7 +103,7 @@ export default function App() {
       <section className="hero">
         <h1>Study chords from the keyboard first.</h1>
         <div className="hero-intro">
-          <p className="eyebrow">GenChord prototype</p>
+          <p className="eyebrow">Interactive study tool</p>
           <p>Choose context, trigger a degree or key, identify the chord or tone, then see and hear the exact notes on the instrument.</p>
         </div>
       </section>
