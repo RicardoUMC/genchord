@@ -1,10 +1,11 @@
 import { useReducer } from 'react'
-import type { ChordResult, DegreeNum, Key, Mode, NoteName, StudyResult } from '../music-core'
+import type { ChordResult, DegreeNum, Key, Mode, NoteName, StudyResult, TriadInversion } from '../music-core'
 
 interface StudyState {
   root: NoteName | null
   mode: Mode | null
   autoChordsEnabled: boolean
+  inversion: TriadInversion
   scaleGuideStyle: ScaleGuideStyle
   activeDegree: DegreeNum | null
   activeStudy: StudyResult | null
@@ -18,6 +19,7 @@ type StudyAction =
   | { type: 'setRoot'; root: NoteName }
   | { type: 'setMode'; mode: Mode }
   | { type: 'toggleAutoChords' }
+  | { type: 'setInversion'; inversion: TriadInversion }
   | { type: 'setScaleGuideStyle'; scaleGuideStyle: ScaleGuideStyle }
   | { type: 'triggerChord'; triggerId: string; degree: DegreeNum; chord: ChordResult }
   | { type: 'triggerKeyboardTone'; triggerId: string; tone: StudyResult }
@@ -29,6 +31,7 @@ const initialState: StudyState = {
   root: null,
   mode: null,
   autoChordsEnabled: true,
+  inversion: 'root',
   scaleGuideStyle: 'dim',
   activeDegree: null,
   activeStudy: null,
@@ -60,6 +63,8 @@ function reducer(state: StudyState, action: StudyAction): StudyState {
       return clearChord({ ...state, mode: action.mode })
     case 'toggleAutoChords':
       return { ...state, autoChordsEnabled: !state.autoChordsEnabled }
+    case 'setInversion':
+      return clearChord({ ...state, inversion: action.inversion })
     case 'setScaleGuideStyle':
       return { ...state, scaleGuideStyle: action.scaleGuideStyle }
     case 'triggerChord':

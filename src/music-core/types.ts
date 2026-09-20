@@ -15,6 +15,8 @@ export type NoteName =
 export type Mode = 'ionian' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'aeolian' | 'locrian'
 export type DegreeNum = 1 | 2 | 3 | 4 | 5 | 6 | 7
 export type ChordQuality = 'major' | 'minor' | 'diminished'
+export type TriadInversion = 'root' | 'first' | 'second'
+export type TriadInversionLabel = 'root position' | 'first inversion' | 'second inversion'
 export type RomanNumeral = 'I' | 'i' | 'ii' | 'ii°' | 'iii' | 'III' | 'IV' | 'iv' | 'V' | 'v' | 'vi' | 'vi°' | 'VI' | 'VII' | 'vii' | 'vii°' | 'i°' | 'v°' | 'iv°' | 'iii°' | 'II'
 
 export interface Key {
@@ -29,7 +31,7 @@ export interface ChordResult {
   degreeNum: DegreeNum
   quality: ChordQuality
   notes: NoteName[]
-  inversion: 'root position'
+  inversion: TriadInversionLabel
   voicing: VoicedNote[]
   generatorNote: VoicedNote
 }

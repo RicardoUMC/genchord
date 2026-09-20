@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
-import type { ChordResult, DegreeNum, Key } from '../../music-core'
+import type { ChordResult, DegreeNum, Key, TriadInversion } from '../../music-core'
 import { resolveDiatonicTriad } from '../../music-core'
 
 const degrees: DegreeNum[] = [1, 2, 3, 4, 5, 6, 7]
@@ -31,17 +31,20 @@ interface DegreeButtonsProps {
   className?: string
   activeKey: Key | null
   activeDegree: DegreeNum | null
+  inversion: TriadInversion
   onStart: (triggerId: string, degree: DegreeNum, chord: ChordResult) => void
   onStop: (triggerId: string) => void
 }
 
-export function DegreeButtons({ className, activeKey, activeDegree, onStart, onStop }: DegreeButtonsProps) {
+export function DegreeButtons({ className, activeKey, activeDegree, inversion, onStart, onStop }: DegreeButtonsProps) {
   const pressedShortcutCodes = useRef(new Set<string>())
   const activeKeyRef = useRef(activeKey)
+  const inversionRef = useRef(inversion)
   const onStartRef = useRef(onStart)
   const onStopRef = useRef(onStop)
 
   activeKeyRef.current = activeKey
+  inversionRef.current = inversion
   onStartRef.current = onStart
   onStopRef.current = onStop
 
@@ -50,7 +53,7 @@ export function DegreeButtons({ className, activeKey, activeDegree, onStart, onS
       return
     }
 
-    onStartRef.current(triggerId, degree, resolveDiatonicTriad(key, degree))
+    onStartRef.current(triggerId, degree, resolveDiatonicTriad(key, degree, 4, inversionRef.current))
   }
 
   useEffect(() => {
@@ -121,7 +124,7 @@ export function DegreeButtons({ className, activeKey, activeDegree, onStart, onS
       </div>
       <div className="degree-grid">
         {degrees.map((degree) => {
-          const chord = activeKey ? resolveDiatonicTriad(activeKey, degree) : null
+          const chord = activeKey ? resolveDiatonicTriad(activeKey, degree, 4, inversion) : null
           const label = chord?.degree ?? String(degree)
 
           return (

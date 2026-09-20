@@ -60,6 +60,39 @@ describe('GenChord study UI', () => {
     expect(screen.getByText('C · E · G')).toBeInTheDocument()
   })
 
+  it('applies selected triad inversion to degree display, keyboard voicing, and playback', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/triad inversion/i), 'first')
+    fireEvent.pointerDown(screen.getByRole('button', { name: /I1 \/ Q/i }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('C major')).toBeInTheDocument()
+    expect(screen.getByText('first inversion')).toBeInTheDocument()
+    expect(screen.getByText('C · E · G')).toBeInTheDocument()
+    expect(screen.getByText('E4 · G4 · C5')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'E', octave: 4 }, { note: 'G', octave: 4 }, { note: 'C', octave: 5 }] }))
+    expect(screen.getByRole('button', { name: 'E4 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'G4 chord tone pressed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'C5 generator note pressed' })).toBeInTheDocument()
+  })
+
+  it('applies selected triad inversion to contextual visual-keyboard chords', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+    await user.selectOptions(screen.getByLabelText(/triad inversion/i), 'second')
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
+
+    expect(screen.getByText('D minor')).toBeInTheDocument()
+    expect(screen.getByText('second inversion')).toBeInTheDocument()
+    expect(screen.getByText('A4 · D5 · F5')).toBeInTheDocument()
+    expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'A', octave: 4 }, { note: 'D', octave: 5 }, { note: 'F', octave: 5 }] }))
+    expect(screen.getByRole('button', { name: 'D5 generator note pressed' })).toBeInTheDocument()
+  })
+
   it('renders all visible keyboard keys in register groups', () => {
     render(<App />)
 

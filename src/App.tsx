@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { initAudio, installAudioWarmup, prepareAudioInstruments, releaseAllVoicings, releaseVoicing, startVoicing } from './audio'
-import type { ChordResult, DegreeNum, Mode, NoteName, VoicedNote } from './music-core'
+import type { ChordResult, DegreeNum, Mode, NoteName, TriadInversion, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveDiatonicTriad, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import type { ScaleGuideStyle } from './ui/state'
 import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, MusicalContext, useStudyState } from './ui'
@@ -87,11 +87,16 @@ export default function App() {
     dispatch({ type: 'setMode', mode })
   }
 
+  const changeInversion = (inversion: TriadInversion) => {
+    releaseAllVoicings()
+    dispatch({ type: 'setInversion', inversion })
+  }
+
   const triggerKeyboardKey = (triggerId: string, key: VoicedNote) => {
     const degree = activeKey ? findDiatonicDegreeForNote(activeKey, key.note) : null
 
     if (activeKey && degree && state.autoChordsEnabled) {
-      triggerChord(triggerId, degree, resolveVisibleKeyboardTriad(activeKey, degree, key.octave))
+      triggerChord(triggerId, degree, resolveVisibleKeyboardTriad(activeKey, degree, key.octave, state.inversion))
       return
     }
 
@@ -111,7 +116,7 @@ export default function App() {
       <section className="instrument-stage" aria-labelledby="chord-display-heading">
         <ChordDisplay activeKey={activeKey} result={state.activeStudy} autoChordsEnabled={state.autoChordsEnabled} />
         <div className="instrument-toolbar">
-          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} onStart={triggerChord} onStop={releaseHeldVoicing} />
+          <DegreeButtons className="instrument-degree-panel" activeKey={activeKey} activeDegree={state.activeDegree} inversion={state.inversion} onStart={triggerChord} onStop={releaseHeldVoicing} />
           <div className="instrument-options">
             {audioError && <p className="audio-error instrument-status-slot" role="alert">{audioError}</p>}
             <label className="field scale-guide-field">
@@ -122,6 +127,17 @@ export default function App() {
               >
                 <option value="dim">Dim out-of-scale keys</option>
                 <option value="highlight">Highlight in-scale keys</option>
+              </select>
+            </label>
+            <label className="field inversion-field">
+              Triad inversion
+              <select
+                value={state.inversion}
+                onChange={(event) => changeInversion(event.target.value as TriadInversion)}
+              >
+                <option value="root">Root position</option>
+                <option value="first">First inversion</option>
+                <option value="second">Second inversion</option>
               </select>
             </label>
           </div>

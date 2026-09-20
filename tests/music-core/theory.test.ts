@@ -164,6 +164,18 @@ describe('music-core theory', () => {
     expect(voicingNames(chord)).toBe('G4 · B4 · D5')
   })
 
+  it('keeps chord identity while applying first and second inversion voicings', () => {
+    const firstInversion = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 1, 4, 'first')
+    const secondInversion = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 1, 4, 'second')
+
+    expect(firstInversion).toMatchObject({ name: 'C major', degree: 'I', quality: 'major', notes: ['C', 'E', 'G'], inversion: 'first inversion' })
+    expect(voicingNames(firstInversion)).toBe('E4 · G4 · C5')
+    expect(firstInversion.generatorNote).toEqual({ note: 'C', octave: 5 })
+    expect(secondInversion).toMatchObject({ name: 'C major', degree: 'I', quality: 'major', notes: ['C', 'E', 'G'], inversion: 'second inversion' })
+    expect(voicingNames(secondInversion)).toBe('G4 · C5 · E5')
+    expect(secondInversion.generatorNote).toEqual({ note: 'C', octave: 5 })
+  })
+
   it('finds a clicked keyboard note degree in the current key by pitch class', () => {
     expect(findDiatonicDegreeForNote({ root: 'C', mode: 'ionian' }, 'D')).toBe(2)
     expect(findDiatonicDegreeForNote({ root: 'C', mode: 'ionian' }, 'C#')).toBeNull()
@@ -191,6 +203,15 @@ describe('music-core theory', () => {
     const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, 4)
 
     expect(voicingNames(chord)).toBe('D4 · F4 · A4')
+  })
+
+  it('applies inversion to visual-keyboard triads in the requested register', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 2, 4, 'first')
+
+    expect(chord.notes).toEqual(['D', 'F', 'A'])
+    expect(chord.inversion).toBe('first inversion')
+    expect(voicingNames(chord)).toBe('F4 · A4 · D5')
+    expect(chord.generatorNote).toEqual({ note: 'D', octave: 5 })
   })
 
   it('resolves a visual keyboard tone as a single playable note', () => {

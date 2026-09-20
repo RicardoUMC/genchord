@@ -1,4 +1,4 @@
-import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mode, NoteName, RomanNumeral, VoicedNote } from './types'
+import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mode, NoteName, RomanNumeral, TriadInversion, TriadInversionLabel, VoicedNote } from './types'
 
 const sharpChromatic: readonly NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const flatChromatic: readonly NoteName[] = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -35,6 +35,18 @@ const romansByMode: Record<Mode, readonly RomanNumeral[]> = {
   mixolydian: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
   aeolian: ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
   locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+}
+
+const triadInversionLabels: Record<TriadInversion, TriadInversionLabel> = {
+  root: 'root position',
+  first: 'first inversion',
+  second: 'second inversion',
+}
+
+const triadInversionRotations: Record<TriadInversion, number> = {
+  root: 0,
+  first: 1,
+  second: 2,
 }
 
 const pitchClassByNaturalLetter: Record<NaturalLetter, number> = {
@@ -144,6 +156,36 @@ export function voiceChordFrom(chordNotes: NoteName[], startingOctave = 4): Voic
   })
 }
 
+function invertTriadNotes(chordNotes: NoteName[], inversion: TriadInversion): NoteName[] {
+  const rotation = triadInversionRotations[inversion]
+
+  return [...chordNotes.slice(rotation), ...chordNotes.slice(0, rotation)]
+}
+
+function findVoicedRoot(voicing: VoicedNote[], rootNote: NoteName): VoicedNote {
+  return voicing.find((voicedNote) => pitchClass(voicedNote.note) === pitchClass(rootNote)) ?? voicing[0]
+}
+
+function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, inversion: TriadInversion): ChordResult {
+  const scale = buildScale(key)
+  const degreeIndex = degree - 1
+  const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
+  const quality = qualitiesByMode[key.mode][degreeIndex]
+  const voicing = voiceChordFrom(invertTriadNotes(notes, inversion), startingOctave)
+
+  return {
+    kind: 'chord',
+    name: `${notes[0]} ${quality}`,
+    degree: romansByMode[key.mode][degreeIndex],
+    degreeNum: degree,
+    quality,
+    notes,
+    inversion: triadInversionLabels[inversion],
+    voicing,
+    generatorNote: findVoicedRoot(voicing, notes[0]),
+  }
+}
+
 export function clipVoicingToVisibleKeyboard(voicing: VoicedNote[]): VoicedNote[] {
   return voicing.filter(isInsideVisibleKeyboardRange)
 }
@@ -156,25 +198,8 @@ export function findDiatonicDegreeForNote(key: Key, note: NoteName): DegreeNum |
   return index === -1 ? null : ((index + 1) as DegreeNum)
 }
 
-export function resolveDiatonicTriad(key: Key, degree: DegreeNum, startingOctave = 4): ChordResult {
-  const scale = buildScale(key)
-  const degreeIndex = degree - 1
-  const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
-  const quality = qualitiesByMode[key.mode][degreeIndex]
-
-  const voicing = voiceChordFrom(notes, startingOctave)
-
-  return {
-    kind: 'chord',
-    name: `${notes[0]} ${quality}`,
-    degree: romansByMode[key.mode][degreeIndex],
-    degreeNum: degree,
-    quality,
-    notes,
-    inversion: 'root position',
-    voicing,
-    generatorNote: voicing[0],
-  }
+export function resolveDiatonicTriad(key: Key, degree: DegreeNum, startingOctave = 4, inversion: TriadInversion = 'root'): ChordResult {
+  return buildTriadResult(key, degree, startingOctave, inversion)
 }
 
 export function resolveKeyboardTone(note: VoicedNote): KeyboardToneResult {
@@ -186,22 +211,14 @@ export function resolveKeyboardTone(note: VoicedNote): KeyboardToneResult {
   }
 }
 
-export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, requestedOctave: number): ChordResult {
-  const scale = buildScale(key)
-  const degreeIndex = degree - 1
-  const notes = [scale[degreeIndex], scale[(degreeIndex + 2) % 7], scale[(degreeIndex + 4) % 7]]
-  const voicing = clipVoicingToVisibleKeyboard(voiceChordFrom(notes, requestedOctave))
+export function resolveVisibleKeyboardTriad(key: Key, degree: DegreeNum, requestedOctave: number, inversion: TriadInversion = 'root'): ChordResult {
+  const chord = buildTriadResult(key, degree, requestedOctave, inversion)
+  const voicing = clipVoicingToVisibleKeyboard(chord.voicing)
 
   return {
-    kind: 'chord',
-    name: `${notes[0]} ${qualitiesByMode[key.mode][degreeIndex]}`,
-    degree: romansByMode[key.mode][degreeIndex],
-    degreeNum: degree,
-    quality: qualitiesByMode[key.mode][degreeIndex],
-    notes,
-    inversion: 'root position',
+    ...chord,
     voicing,
-    generatorNote: voicing[0],
+    generatorNote: findVoicedRoot(voicing, chord.notes[0]) ?? chord.generatorNote,
   }
 }
 

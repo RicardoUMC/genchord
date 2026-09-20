@@ -22,7 +22,7 @@ Que estudiar acordes en teclado sea mas rapido, visual y auditivo, sin reemplaza
 - Tocar una tecla fisica o grado y disparar el acorde correspondiente dentro del contexto. El prototipo combina botones de grado con teclas absolutas del piano visual para estudiar la misma armonia desde dos entradas.
 - Visualizar solo el voicing activo exacto en el teclado antes que tonos repetidos por todo el registro.
 - Escuchar el acorde con sonido simple y respuesta rapida mientras se mantiene presionado el grado, tecla fisica o tecla visual.
-- Usar voicings automaticos en posicion fundamental: los grados parten de C4 y las teclas visuales conservan el registro disparado; si el acorde excede C3-C6, se muestra y reproduce un voicing parcial con las notas disponibles.
+- Usar voicings automaticos con posicion fundamental por defecto y control basico de primera/segunda inversion: los grados parten de C4 y las teclas visuales conservan el registro disparado; si el acorde excede C3-C6, se muestra y reproduce un voicing parcial con las notas disponibles.
 - Automatic chords are enabled by default and can be toggled off with the visible control or the A shortcut; when disabled, degree and keyboard triggers play only the selected/root note even inside a scale context.
 - Held inputs are polyphonic: overlapping degree, shortcut, and visual-keyboard triggers sustain independently until their own input is released.
 - The active study result appears in a compact `Now Studying` strip directly above the keyboard so the player can read context, auto-chord state, range, and current result without looking below the instrument.
@@ -52,7 +52,7 @@ El teclado debe ser el elemento visual y funcional primario. Contexto, grados y 
 
 ### 3. Variaciones de acordes: septimas, suspendidos, add, extensiones.
 ### 4. Voicings orientados a acompanamiento.
-### 5. Controles explicitos de inversion, octava y registro.
+### 5. Controles mas avanzados de voicing, octava y registro.
 ### 6. Preferencias para decidir si el teclado visual siempre toca notas individuales, intenta generar acordes contextuales o combina ambos comportamientos.
 ### 7. Progresiones y ejercicios guiados.
 ### 8. Preferencias de notacion mas avanzadas.
