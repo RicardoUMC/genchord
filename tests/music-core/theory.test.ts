@@ -169,7 +169,15 @@ describe('music-core theory', () => {
     const highRegister = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 5, 5)
 
     expect(voicingNames(lowRegister)).toBe('G3 · B3 · D4')
-    expect(voicingNames(highRegister)).toBe('G5 · B5 · D6')
+    expect(voicingNames(highRegister)).toBe('G5 · B5')
+  })
+
+  it('clips high degree-triggered voicings to the visible keyboard range without changing chord identity', () => {
+    const chord = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 5, 5)
+
+    expect(chord).toMatchObject({ name: 'G major', degree: 'V', quality: 'major', notes: ['G', 'B', 'D'], inversion: 'root position' })
+    expect(voicingNames(chord)).toBe('G5 · B5')
+    expect(chord.generatorNote).toEqual({ note: 'G', octave: 5 })
   })
 
   it('keeps chord identity while applying first and second inversion voicings', () => {
@@ -190,6 +198,14 @@ describe('music-core theory', () => {
     expect(firstInversion).toMatchObject({ name: 'A minor', degree: 'vi', quality: 'minor', notes: ['A', 'C', 'E'], inversion: 'first inversion' })
     expect(voicingNames(firstInversion)).toBe('C5 · E5 · A5')
     expect(firstInversion.generatorNote).toEqual({ note: 'A', octave: 4 })
+  })
+
+  it('falls back to visible root-position tones when a high degree inversion clips to empty', () => {
+    const chord = resolveDiatonicTriad({ root: 'C', mode: 'ionian' }, 5, 5, 'second')
+
+    expect(chord).toMatchObject({ name: 'G major', degree: 'V', quality: 'major', notes: ['G', 'B', 'D'], inversion: 'second inversion' })
+    expect(voicingNames(chord)).toBe('G5 · B5')
+    expect(chord.generatorNote).toEqual({ note: 'G', octave: 5 })
   })
 
   it('finds a clicked keyboard note degree in the current key by pitch class', () => {
@@ -252,6 +268,24 @@ describe('music-core theory', () => {
     expect(chord.inversion).toBe('first inversion')
     expect(voicingNames(chord)).toBe('E5 · G5 · C6')
     expect(chord.generatorNote).toEqual({ note: 'C', octave: 6 })
+  })
+
+  it('allows low-edge first inversion keyboard voicings to be partial while keeping the requested inversion label', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 3 }, 'first')
+
+    expect(chord.notes).toEqual(['C', 'E', 'G'])
+    expect(chord.inversion).toBe('first inversion')
+    expect(voicingNames(chord)).toBe('C3')
+    expect(chord.generatorNote).toEqual({ note: 'C', octave: 3 })
+  })
+
+  it('allows low-edge second inversion keyboard voicings to drop the low fifth while keeping the requested inversion label', () => {
+    const chord = resolveVisibleKeyboardTriad({ root: 'C', mode: 'ionian' }, 1, { note: 'C', octave: 3 }, 'second')
+
+    expect(chord.notes).toEqual(['C', 'E', 'G'])
+    expect(chord.inversion).toBe('second inversion')
+    expect(voicingNames(chord)).toBe('C3 · E3')
+    expect(chord.generatorNote).toEqual({ note: 'C', octave: 3 })
   })
 
   it('resolves a visual keyboard tone as a single playable note', () => {

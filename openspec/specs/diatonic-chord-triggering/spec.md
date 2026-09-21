@@ -31,7 +31,7 @@ The system SHALL present 7 degree buttons that each trigger the corresponding di
 
 ### Requirement: Keyboard Input Trigger
 
-The system SHALL map physical keyboard keys (1-7 or a-g) to diatonic degrees so the user can trigger chords without clicking.
+The system SHALL map physical keyboard keys (`1`-`7` or `Q`-`U`) to diatonic degrees so the user can trigger chords without clicking. The `A` key SHALL remain reserved for toggling automatic chords.
 
 #### Scenario: Press keyboard key for degree
 

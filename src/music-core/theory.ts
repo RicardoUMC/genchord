@@ -235,7 +235,8 @@ function buildTriadResult(key: Key, degree: DegreeNum, startingOctave: number, i
   const quality = qualitiesByMode[key.mode][degreeIndex]
 
   const rootVoicing = voiceChordFrom(notes, startingOctave)
-  const voicing = applyInversionToVoicing(rootVoicing, inversion)
+  const clippedInvertedVoicing = clipVoicingToVisibleKeyboard(applyInversionToVoicing(rootVoicing, inversion))
+  const voicing = clippedInvertedVoicing.length > 0 ? clippedInvertedVoicing : clipVoicingToVisibleKeyboard(rootVoicing)
 
   return {
     kind: 'chord',

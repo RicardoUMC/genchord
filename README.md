@@ -10,6 +10,7 @@ Prototipo interactivo pulido:
 - Disparo de acordes por grados diatónicos.
 - Visualización del acorde: grado, nombre, notas y nota generadora.
 - Teclado visual C3-C6 con notas exactas del voicing resaltadas.
+- Control básico de inversión y registro para estudiar distintas posiciones dentro del rango visible.
 - Playback al arrastrar sobre teclas visuales: mantener presionado y cruzar teclas dispara cada nota/acorde contextual.
 - Atajos de teclado físico para grados: `1`-`7` y `Q`-`U`, con sonido sostenido mientras se mantiene la tecla.
 - Reproducción con Tone.js: sampler de piano cuando las muestras están listas y synth como fallback.
@@ -79,7 +80,7 @@ Incluido:
 Fuera de alcance por ahora:
 
 - Séptimas, suspendidos, acordes `add` y extensiones.
-- Inversiones y voicings configurables.
+- Voicings avanzados configurables, duplicaciones y omisiones manuales.
 - Progresiones guardadas.
 - Notación avanzada como `Cb`, `Fb`, `E#`, `B#` o dobles alteraciones.
 - Medición fina de latencia en navegador.
@@ -107,6 +108,6 @@ Fuera de alcance por ahora:
 ## Próximos pasos
 
 - Probar la experiencia en navegador y ajustar la interacción.
-- Agregar inversiones y control de registro/octava.
-- Evaluar séptimas y voicings orientados a acompañamiento.
+- Refinar inversiones, registro/octava y voicings orientados a acompañamiento.
+- Evaluar séptimas y otros tipos de acorde.
 - Revisar si conviene incorporar `tonal.js` cuando el modelo musical crezca.
