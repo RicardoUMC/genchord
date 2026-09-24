@@ -17,6 +17,10 @@ Bring project metadata, specs, and maintenance configuration in line with the cu
 - [x] Verify with available checks.
   - Evidence: writer and independent verifier passed `npm run check` (typecheck plus 68 tests), `npm run build`, JSON parsing, and `git diff --check`; no candidate defect found.
 
+## Commit Evidence
+
+- `7186c8f` — `chore: align project specs and tooling`
+
 ## Notes
 
 - Conversation language: Spanish.
