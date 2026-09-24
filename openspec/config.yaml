@@ -18,10 +18,10 @@ architecture:
 
 testing:
   strict_tdd: false
-  app_code: false
-  package_json: false
-  test_runner: none
-  test_command: none
+  app_code: true
+  package_json: true
+  test_runner: Vitest
+  test_command: npm test
   lint_command: none
-  typecheck_command: none
-  reason: "No codebase/test runner exists yet; enable strict TDD after scaffolding."
+  typecheck_command: npm run typecheck
+  reason: "App code and Vitest exist, but strict TDD is not currently configured as the project workflow."

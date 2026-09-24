@@ -34,6 +34,14 @@ El teclado debe ser el elemento visual y funcional primario. Contexto, grados y 
 
 ## Despues del MVP
 
+**Proximo incremento priorizado: Contexto musical.** Antes de ampliar el modelo armonico, se validara y refinara el material pedagogico que ya acompana a cada modo en la UI. El incremento debe:
+
+- revisar las explicaciones breves de caracter y rasgos distintivos de los 7 modos;
+- validar con fuentes confiables que los ejemplos de canciones usen explicitamente el modo indicado;
+- revisar las progresiones sugeridas y su funcion pedagogica;
+- mantener el contenido conciso y complementario al instrumento;
+- no incorporar septimas, nuevos tipos de acorde ni cambios en `music-core` dentro del mismo incremento.
+
 ### 1. Modos y escalas alternativas (implementado)
 
 - Implementar los 7 modos diatónicos con doble nomenclatura: griego (Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian) + correspondencia práctica (Major, Natural Minor, etc.).

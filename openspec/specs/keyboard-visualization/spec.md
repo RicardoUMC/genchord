@@ -50,6 +50,36 @@ When a chord or note is triggered, the system SHALL visually distinguish the gen
 - THEN only that key is highlighted as active
 - AND that same key has the generator accent
 
+### Requirement: Scale Guide Styles
+
+The system SHALL provide scale guide styles for the visual keyboard. In dim mode, out-of-scale keys SHALL be visually de-emphasized; in highlight mode, in-scale keys SHALL be visually emphasized while out-of-scale keys keep the base key style unless active.
+
+#### Scenario: Dim out-of-scale keys
+
+- GIVEN the active musical context is "C Ionian (Major)"
+- AND scale guide style is set to dim
+- THEN keys outside the C major scale are visually dimmed when they are not active or generators
+
+#### Scenario: Highlight in-scale keys
+
+- GIVEN the active musical context is "C Ionian (Major)"
+- AND scale guide style is set to highlight
+- THEN keys in the C major scale are visually highlighted when they are not active or generators
+- AND out-of-scale keys keep the base key style when they are not active or generators
+
+### Requirement: Independently Held Visual Inputs
+
+The system SHALL keep each held keyboard or degree input visually active until that specific input is released, allowing multiple held inputs to be highlighted at the same time.
+
+#### Scenario: Hold two keyboard inputs at once
+
+- GIVEN the keyboard is visible and the active musical context is "C Ionian (Major)"
+- WHEN the user holds C4 and then holds G4 before releasing C4
+- THEN the active highlights include both held inputs' tones or contextual chords
+- WHEN the user releases C4
+- THEN only the C4-triggered input is cleared
+- AND the G4-triggered input remains highlighted until G4 is released
+
 ### Requirement: Drag-Across Playback
 
 The system SHALL allow pointer drag-across playback on the visual keyboard so a user can keep the pointer pressed and cross keys to trigger each entered key.

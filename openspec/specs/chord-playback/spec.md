@@ -47,6 +47,27 @@ AudioContext SHALL be created or resumed on the first user gesture to comply wit
 - WHEN the user clicks any interactive element (key selector or degree button)
 - THEN AudioContext resumes and no console error appears
 
+### Requirement: Sustained Polyphonic Held Inputs
+
+The system SHALL sustain playback for each held input until that specific input is released. Multiple held inputs SHALL be allowed to overlap independently, and releasing one input SHALL NOT stop notes that are still owned by another held input.
+
+#### Scenario: Sustain held degree until release
+
+- GIVEN AudioContext is initialized
+- WHEN the user presses and holds degree I
+- THEN the degree I voicing continues sounding while the input remains held
+- WHEN the user releases degree I
+- THEN the degree I voicing is released
+
+#### Scenario: Overlap independently held inputs
+
+- GIVEN AudioContext is initialized
+- WHEN the user holds degree I and then holds degree V before releasing degree I
+- THEN both held voicings can sound at the same time
+- WHEN the user releases degree I
+- THEN only notes not still owned by degree V are released
+- AND the degree V voicing continues until degree V is released
+
 ### Requirement: No Playback Without User Gesture
 
 The system SHALL NOT play sound autonomously (e.g. on musical context change or page load).
