@@ -19,6 +19,14 @@ async function selectCmajor(user: ReturnType<typeof userEvent.setup>) {
   await user.click(document.body)
 }
 
+function getOctaveBar() {
+  return screen.getByRole('group', { name: /chord octave/i })
+}
+
+async function selectChordOctave(user: ReturnType<typeof userEvent.setup>, octave: 3 | 4 | 5) {
+  await user.click(within(getOctaveBar()).getByRole('button', { name: new RegExp(`set chord octave ${octave}`, 'i') }))
+}
+
 describe('GenChord study UI', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -83,7 +91,8 @@ describe('GenChord study UI', () => {
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/chord octave/i), '3')
+    expect(screen.queryByRole('combobox', { name: /chord octave/i })).not.toBeInTheDocument()
+    await selectChordOctave(user, 3)
     fireEvent.pointerDown(screen.getByRole('button', { name: /V5 \/ T/i }), { pointerId: 1, buttons: 1 })
 
     expect(screen.getByText('G major')).toBeInTheDocument()
@@ -97,7 +106,7 @@ describe('GenChord study UI', () => {
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/chord octave/i), '5')
+    await selectChordOctave(user, 5)
     fireEvent.keyDown(window, { code: 'Digit2' })
 
     expect(screen.getByText('D minor')).toBeInTheDocument()
@@ -105,12 +114,32 @@ describe('GenChord study UI', () => {
     expect(startVoicing).toHaveBeenCalledWith(expect.objectContaining({ voicing: [{ note: 'D', octave: 5 }, { note: 'F', octave: 5 }, { note: 'A', octave: 5 }] }))
   })
 
+  it('cycles the OctaveBar globally with arrow keys and ignores editable targets', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await selectCmajor(user)
+
+    await user.keyboard('{ArrowRight}')
+    expect(within(getOctaveBar()).getByText('Octave 5')).toBeInTheDocument()
+
+    await user.keyboard('{ArrowRight}')
+    expect(within(getOctaveBar()).getByText('Octave 3')).toBeInTheDocument()
+
+    await user.keyboard('{ArrowLeft}')
+    expect(within(getOctaveBar()).getByText('Octave 5')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText(/scale guide style/i))
+    await user.keyboard('{ArrowLeft}')
+    expect(within(getOctaveBar()).getByText('Octave 5')).toBeInTheDocument()
+  })
+
   it('keeps visual-keyboard clicks in the clicked register when chord octave changes', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await selectCmajor(user)
-    await user.selectOptions(screen.getByLabelText(/chord octave/i), '5')
+    await selectChordOctave(user, 5)
     fireEvent.pointerDown(screen.getByRole('button', { name: 'D4' }), { pointerId: 1, buttons: 1 })
 
     expect(screen.getByText('D minor')).toBeInTheDocument()
@@ -163,9 +192,15 @@ describe('GenChord study UI', () => {
     const degreePanel = screen.getByRole('region', { name: /trigger a diatonic triad/i })
     const controls = screen.getByLabelText(/sound and study configuration/i)
 
+    const octaveBar = getOctaveBar()
+
     expect(keyboard).toHaveAttribute('data-scale-guide-style', 'dim')
     expect(scaleGuideStyle).toHaveValue('dim')
-    expect(screen.getByLabelText(/chord octave/i)).toHaveValue('4')
+    expect(screen.queryByRole('combobox', { name: /chord octave/i })).not.toBeInTheDocument()
+    expect(within(octaveBar).queryByText(/current octave/i)).not.toBeInTheDocument()
+    expect(within(octaveBar).getByText('Octave 4')).toBeInTheDocument()
+    expect(keyboard.compareDocumentPosition(octaveBar)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(keyboard.closest('.studio-main-display')).toContainElement(octaveBar)
     expect(scaleGuideStyle.closest('.instrument-stage')).toContainElement(scaleGuideStyle)
     expect(degreePanel.closest('.instrument-stage')).toContainElement(degreePanel)
     expect(controls).not.toContainElement(scaleGuideStyle)
