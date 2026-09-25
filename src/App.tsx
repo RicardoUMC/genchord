@@ -3,11 +3,14 @@ import { initAudio, installAudioWarmup, prepareAudioInstruments, releaseAllVoici
 import type { ChordResult, DegreeChordOctave, DegreeNum, Mode, NoteName, TriadInversion, VoicedNote } from './music-core'
 import { buildScale, findDiatonicDegreeForNote, resolveKeyboardTone, resolveVisibleKeyboardTriad } from './music-core'
 import type { ScaleGuideStyle } from './ui/state'
-import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, MusicalContext, useStudyState } from './ui'
+import { ChordDisplay, DegreeButtons, KeyboardViz, KeySelector, useStudyState } from './ui'
+import { MusicalContextPanel } from './ui/MusicalContextPanel'
+import { MusicalContextToggle } from './ui/MusicalContextToggle'
 
 export default function App() {
   const { state, activeKey, dispatch } = useStudyState()
   const [audioError, setAudioError] = useState<string | null>(null)
+  const [isMusicalContextOpen, setIsMusicalContextOpen] = useState(false)
   const scaleNotes = activeKey ? buildScale(activeKey) : null
 
   const warmAudio = () => {
@@ -169,6 +172,18 @@ export default function App() {
           onModeChange={changeMode}
           onInteract={warmAudio}
         />
+        <section className="panel" aria-labelledby="scale-color-heading">
+          <div>
+            <p className="eyebrow">Reference</p>
+            <h2 id="scale-color-heading">Scale color</h2>
+          </div>
+          <MusicalContextToggle
+            expanded={isMusicalContextOpen}
+            disabled={!state.root || !state.mode}
+            onToggle={() => setIsMusicalContextOpen((expanded) => !expanded)}
+          />
+          <p className="helper">Open a compact reference for color notes, examples, progressions, and the current key's diatonic chords.</p>
+        </section>
         <section className="panel" aria-labelledby="auto-chords-heading">
           <div>
             <p className="eyebrow">Playback</p>
@@ -181,7 +196,7 @@ export default function App() {
         </section>
       </div>
 
-      <MusicalContext mode={state.mode} />
+      <MusicalContextPanel root={state.root} mode={state.mode} expanded={isMusicalContextOpen} />
     </main>
   )
 }

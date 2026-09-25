@@ -8,6 +8,8 @@ const modeDisplayNames: Record<Mode, string> = {
   mixolydian: 'Mixolydian',
   aeolian: 'Natural Minor',
   locrian: 'Locrian',
+  'harmonic-minor': 'Harmonic Minor',
+  'melodic-minor': 'Melodic Minor',
 }
 
 function keyDisplayName(key: Key): string {

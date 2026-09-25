@@ -1,4 +1,4 @@
-import type { ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mode, NoteName, RomanNumeral, TriadInversion, TriadInversionLabel, VoicedNote } from './types'
+import type { ChordInfo, ChordQuality, ChordResult, DegreeNum, KeyboardToneResult, Key, Mode, ModeContext, Note, NoteName, RomanNumeral, TriadInversion, TriadInversionLabel, VoicedNote } from './types'
 
 const sharpChromatic: readonly NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const flatChromatic: readonly NoteName[] = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -15,6 +15,8 @@ const modeSteps: Record<Mode, readonly number[]> = {
   mixolydian: [0, 2, 4, 5, 7, 9, 10],
   aeolian: [0, 2, 3, 5, 7, 8, 10],
   locrian: [0, 1, 3, 5, 6, 8, 10],
+  'harmonic-minor': [0, 2, 3, 5, 7, 8, 11],
+  'melodic-minor': [0, 2, 3, 5, 7, 9, 11],
 }
 
 const qualitiesByMode: Record<Mode, readonly ChordQuality[]> = {
@@ -25,6 +27,8 @@ const qualitiesByMode: Record<Mode, readonly ChordQuality[]> = {
   mixolydian: ['major', 'minor', 'diminished', 'major', 'minor', 'minor', 'major'],
   aeolian: ['minor', 'diminished', 'major', 'minor', 'minor', 'major', 'major'],
   locrian: ['diminished', 'major', 'minor', 'minor', 'major', 'major', 'minor'],
+  'harmonic-minor': ['minor', 'diminished', 'augmented', 'minor', 'major', 'major', 'diminished'],
+  'melodic-minor': ['minor', 'minor', 'augmented', 'major', 'major', 'diminished', 'diminished'],
 }
 
 const romansByMode: Record<Mode, readonly RomanNumeral[]> = {
@@ -35,6 +39,110 @@ const romansByMode: Record<Mode, readonly RomanNumeral[]> = {
   mixolydian: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
   aeolian: ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
   locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+  'harmonic-minor': ['i', 'ii°', 'III+', 'iv', 'V', 'VI', 'vii°'],
+  'melodic-minor': ['i', 'ii', 'III+', 'IV', 'V', 'vi°', 'vii°'],
+}
+
+const modeContexts: Record<Mode, ModeContext> = {
+  ionian: {
+    name: 'Ionian (Major)',
+    description: 'Ionian is the major scale: bright, stable, and strongly resolved around the tonic. Its natural 3rd and 7th make the I and V-I pull feel direct and familiar.',
+    characteristicNote: 'Natural 7̂ leading tone against the tonic; ♮3 gives the major color.',
+    examples: [
+      { song: 'Let It Be', artist: 'The Beatles' },
+      { song: 'Here Comes the Sun', artist: 'The Beatles' },
+      { song: 'Happy', artist: 'Pharrell Williams' },
+    ],
+    progressions: ['I-V-vi-IV', 'I-IV-V', 'ii-V-I'],
+  },
+  dorian: {
+    name: 'Dorian',
+    description: 'Dorian is a minor mode with a raised 6th, so it keeps minor depth without the darker pull of natural minor. The i-IV motion is its clearest signature.',
+    characteristicNote: '♮6 vs Aeolian ♭6.',
+    examples: [
+      { song: 'So What', artist: 'Miles Davis' },
+      { song: 'Scarborough Fair', artist: 'Simon & Garfunkel' },
+      { song: 'Oye Como Va', artist: 'Santana' },
+    ],
+    progressions: ['i-IV', 'i-ii-IV-i', 'i-v-VII-IV'],
+  },
+  phrygian: {
+    name: 'Phrygian',
+    description: 'Phrygian is a minor mode defined by the half-step above the tonic. Its flat 2nd creates a tense, Spanish or Middle Eastern edge.',
+    characteristicNote: '♭2 above the tonic.',
+    examples: [
+      { song: 'Wherever I May Roam', artist: 'Metallica' },
+      { song: 'White Rabbit', artist: 'Jefferson Airplane' },
+      { song: 'Set the Controls for the Heart of the Sun', artist: 'Pink Floyd' },
+    ],
+    progressions: ['i-II', 'i-♭II-i', 'i-vii-♭II-i'],
+  },
+  lydian: {
+    name: 'Lydian',
+    description: 'Lydian is a major mode with a raised 4th, giving it an open, floating sound. The tonic major chord feels stable while the #4 removes the usual pull toward V.',
+    characteristicNote: '#4 vs Ionian natural 4.',
+    examples: [
+      { song: 'Flying in a Blue Dream', artist: 'Joe Satriani' },
+      { song: 'Man on the Moon', artist: 'R.E.M.' },
+      { song: 'Maria', artist: 'Leonard Bernstein' },
+    ],
+    progressions: ['I-II', 'I-V-II-I', 'I-II-V-I'],
+  },
+  mixolydian: {
+    name: 'Mixolydian',
+    description: 'Mixolydian is a major mode with a flat 7th, making it bright but less resolved than Ionian. It is common in blues, rock, folk, and dominant grooves.',
+    characteristicNote: '♭7 vs Ionian natural 7.',
+    examples: [
+      { song: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd' },
+      { song: 'Norwegian Wood', artist: 'The Beatles' },
+      { song: 'Clocks', artist: 'Coldplay' },
+    ],
+    progressions: ['I-♭VII-IV', 'I-v-IV', 'I-IV-♭VII-I'],
+  },
+  aeolian: {
+    name: 'Aeolian (Natural Minor)',
+    description: 'Aeolian is natural minor: dark, familiar, and centered by ♭3, ♭6, and ♭7. Its minor v and major VI/VII avoid the stronger harmonic-minor leading tone.',
+    characteristicNote: '♭6 vs Dorian natural 6.',
+    examples: [
+      { song: 'All Along the Watchtower', artist: 'Bob Dylan' },
+      { song: 'Losing My Religion', artist: 'R.E.M.' },
+      { song: 'Somebody That I Used to Know', artist: 'Gotye' },
+    ],
+    progressions: ['i-VI-VII', 'i-VII-VI-VII', 'i-iv-v'],
+  },
+  locrian: {
+    name: 'Locrian',
+    description: 'Locrian is the unstable diminished mode, with both a flat 2nd and flat 5th against the tonic. Because the tonic triad is diminished, it rarely acts as a long-term tonal home.',
+    characteristicNote: '♭5 against the tonic triad, plus ♭2.',
+    examples: [
+      { song: 'Army of Me', artist: 'Björk' },
+      { song: 'Juice Box', artist: 'The Strokes' },
+      { song: 'YYZ', artist: 'Rush' },
+    ],
+    progressions: ['i°-II', 'i°-iv-II', 'i°-VI-V'],
+  },
+  'harmonic-minor': {
+    name: 'Harmonic Minor',
+    description: 'Harmonic minor raises the 7th degree of natural minor to create a leading tone and a major V chord. The augmented 2nd between ♭6 and 7 gives it a dramatic, classical minor color.',
+    characteristicNote: 'Natural 7̂ in minor, creating V and vii°.',
+    examples: [
+      { song: 'Hava Nagila', artist: 'Traditional' },
+      { song: 'Misirlou', artist: 'Dick Dale' },
+      { song: 'Toxicity', artist: 'System of a Down' },
+    ],
+    progressions: ['i-iv-V', 'i-VI-V', 'ii°-V-i'],
+  },
+  'melodic-minor': {
+    name: 'Melodic Minor',
+    description: 'Melodic minor raises both the 6th and 7th degrees of natural minor, smoothing the line into the tonic. In modern use it also supplies bright minor tonic colors and altered dominant resources.',
+    characteristicNote: 'Natural 6̂ and 7̂ in a minor tonic context.',
+    examples: [
+      { song: 'Nardis', artist: 'Miles Davis' },
+      { song: 'Yesterday', artist: 'The Beatles' },
+      { song: 'Caravan', artist: 'Duke Ellington' },
+    ],
+    progressions: ['i-IV-V', 'i-ii-V', 'i-VI°-V'],
+  },
 }
 
 const triadInversionLabels: Record<TriadInversion, TriadInversionLabel> = {
@@ -138,6 +246,27 @@ export function buildScale(key: Key): NoteName[] {
     const targetPitchClass = (rootPitchClass + step) % 12
 
     return spellPitchForScaleDegree(letter, targetPitchClass, fallbackChromatic)
+  })
+}
+
+export function getModeContext(mode: Mode): ModeContext {
+  return modeContexts[mode]
+}
+
+export function getDiatonicChords(key: Note, mode: Mode): ChordInfo[] {
+  const scale = buildScale({ root: key, mode })
+
+  return scale.map((root, index) => {
+    const notes = [root, scale[(index + 2) % 7], scale[(index + 4) % 7]]
+    const quality = qualitiesByMode[mode][index]
+
+    return {
+      name: `${root} ${quality}`,
+      degree: romansByMode[mode][index],
+      degreeNum: (index + 1) as DegreeNum,
+      quality,
+      notes,
+    }
   })
 }
 

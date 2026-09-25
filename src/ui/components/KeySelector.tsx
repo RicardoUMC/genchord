@@ -10,6 +10,8 @@ const modeOptions: { value: Mode; label: string }[] = [
   { value: 'mixolydian', label: 'Mixolydian' },
   { value: 'aeolian', label: 'Aeolian (Natural Minor)' },
   { value: 'locrian', label: 'Locrian' },
+  { value: 'harmonic-minor', label: 'Harmonic Minor' },
+  { value: 'melodic-minor', label: 'Melodic Minor' },
 ]
 
 interface KeySelectorProps {

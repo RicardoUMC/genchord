@@ -3,6 +3,8 @@ import {
   buildScale,
   clipVoicingToVisibleKeyboard,
   findDiatonicDegreeForNote,
+  getDiatonicChords,
+  getModeContext,
   noteNames,
   resolveDiatonicTriad,
   resolveKeyboardTone,
@@ -65,6 +67,8 @@ const representativeModeKeys: ExpectedKey[] = [
   { key: { root: 'C', mode: 'mixolydian' }, scale: ['C', 'D', 'E', 'F', 'G', 'A', 'Bb'] },
   { key: { root: 'C', mode: 'aeolian' }, scale: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'] },
   { key: { root: 'C', mode: 'locrian' }, scale: ['C', 'Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb'] },
+  { key: { root: 'C', mode: 'harmonic-minor' }, scale: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'B'] },
+  { key: { root: 'C', mode: 'melodic-minor' }, scale: ['C', 'D', 'Eb', 'F', 'G', 'A', 'B'] },
 ]
 
 const triadQualitiesByMode: Record<Mode, ChordQuality[]> = {
@@ -75,6 +79,8 @@ const triadQualitiesByMode: Record<Mode, ChordQuality[]> = {
   mixolydian: ['major', 'minor', 'diminished', 'major', 'minor', 'minor', 'major'],
   aeolian: aeolianTriadQualities,
   locrian: ['diminished', 'major', 'minor', 'minor', 'major', 'major', 'minor'],
+  'harmonic-minor': ['minor', 'diminished', 'augmented', 'minor', 'major', 'major', 'diminished'],
+  'melodic-minor': ['minor', 'minor', 'augmented', 'major', 'major', 'diminished', 'diminished'],
 }
 
 const romanNumeralsByMode: Record<Mode, RomanNumeral[]> = {
@@ -85,6 +91,8 @@ const romanNumeralsByMode: Record<Mode, RomanNumeral[]> = {
   mixolydian: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
   aeolian: aeolianRomanNumerals,
   locrian: ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+  'harmonic-minor': ['i', 'ii°', 'III+', 'iv', 'V', 'VI', 'vii°'],
+  'melodic-minor': ['i', 'ii', 'III+', 'IV', 'V', 'vi°', 'vii°'],
 }
 
 function expectTriads(key: Key, expected: ExpectedTriad[]) {
@@ -117,7 +125,7 @@ describe('music-core theory', () => {
     })
   })
 
-  it('spells representative roots for all seven diatonic modes', () => {
+  it('spells representative roots for all supported modes and minor scales', () => {
     representativeModeKeys.forEach(({ key, scale }) => {
       expect(buildScale(key)).toEqual(scale)
     })
@@ -135,10 +143,46 @@ describe('music-core theory', () => {
     })
   })
 
-  it('resolves triads for representative roots in all seven diatonic modes', () => {
+  it('resolves triads for representative roots in all supported modes and minor scales', () => {
     representativeModeKeys.forEach(({ key, scale }) => {
       expectTriads(key, expectedTriads(scale, triadQualitiesByMode[key.mode], romanNumeralsByMode[key.mode]))
     })
+  })
+
+  it('returns musical context metadata for all 9 supported modes and scales', () => {
+    representativeModeKeys.forEach(({ key }) => {
+      const context = getModeContext(key.mode)
+
+      expect(context.name).toBeTruthy()
+      expect(context.description.length).toBeGreaterThan(40)
+      expect(context.characteristicNote).toBeTruthy()
+      expect(context.examples.length).toBeGreaterThanOrEqual(2)
+      expect(context.examples.length).toBeLessThanOrEqual(3)
+      expect(context.progressions.length).toBeGreaterThanOrEqual(2)
+      expect(context.progressions.length).toBeLessThanOrEqual(3)
+    })
+  })
+
+  it('returns diatonic chord summaries for selected keys and modes', () => {
+    expect(getDiatonicChords('C', 'ionian').map((chord) => [chord.degree, chord.name, chord.notes])).toEqual([
+      ['I', 'C major', ['C', 'E', 'G']],
+      ['ii', 'D minor', ['D', 'F', 'A']],
+      ['iii', 'E minor', ['E', 'G', 'B']],
+      ['IV', 'F major', ['F', 'A', 'C']],
+      ['V', 'G major', ['G', 'B', 'D']],
+      ['vi', 'A minor', ['A', 'C', 'E']],
+      ['vii°', 'B diminished', ['B', 'D', 'F']],
+    ])
+    expect(getDiatonicChords('A', 'harmonic-minor').map((chord) => [chord.degree, chord.name, chord.notes])).toEqual([
+      ['i', 'A minor', ['A', 'C', 'E']],
+      ['ii°', 'B diminished', ['B', 'D', 'F']],
+      ['III+', 'C augmented', ['C', 'E', 'G#']],
+      ['iv', 'D minor', ['D', 'F', 'A']],
+      ['V', 'E major', ['E', 'G#', 'B']],
+      ['VI', 'F major', ['F', 'A', 'C']],
+      ['vii°', 'G# diminished', ['G#', 'B', 'D']],
+    ])
+    expect(getDiatonicChords('C', 'melodic-minor')[5]).toMatchObject({ degree: 'vi°', name: 'A diminished', notes: ['A', 'C', 'Eb'] })
   })
 
   it('keeps the diminished vii° edge case in ionian keys', () => {
