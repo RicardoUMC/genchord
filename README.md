@@ -38,6 +38,9 @@ http://localhost:5173/
 | `npm run build` | Ejecuta typecheck y genera el build de producción. |
 | `npm run typecheck` | Verifica tipos de TypeScript sin emitir archivos. |
 | `npm test` | Ejecuta la suite de tests con Vitest. |
+| `npm run check` | Ejecuta typecheck y tests en una sola pasada de mantenimiento. |
+
+Lint no está configurado todavía; por ahora el chequeo mantenible del prototipo es `npm run check`.
 
 ## Despliegue
 
@@ -84,6 +87,10 @@ Fuera de alcance por ahora:
 - Progresiones guardadas.
 - Notación avanzada como `Cb`, `Fb`, `E#`, `B#` o dobles alteraciones.
 - Medición fina de latencia en navegador.
+
+## Verificación manual de audio
+
+Además de los tests automatizados, revisar audio en navegador real: desbloqueo/reintento de autoplay, sampler con fallback a synth, liberación de notas sostenidas solapadas, fallback visual cuando audio no está disponible y respuesta percibida. El checklist vive en `docs/technical-direction.md`.
 
 ## Documentación del proyecto
 

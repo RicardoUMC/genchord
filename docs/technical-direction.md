@@ -30,6 +30,11 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 - La UI usa tokens CSS semanticos en `:root` para la paleta oscura actual; esto prepara el camino para tema claro/oscuro sin agregar todavia selector de tema.
 - No se agrega `tonal.js` todavia; se reevalua cuando entren alteraciones teoricas completas, modos o voicings avanzados.
 
+## Validacion local
+
+- `npm run check` combina `npm run typecheck` y `npm test` para el mantenimiento del prototipo.
+- No hay comando de lint configurado todavia y no se agregan dependencias de lint en esta etapa.
+
 ## Audio y muestras
 
 - El sampler de piano carga muestras Salamander desde `https://tonejs.github.io/audio/salamander/`.
@@ -37,6 +42,16 @@ La recomendacion inicial es TypeScript con una UI web moderna, un nucleo de teor
 - Mientras el sampler no este listo, o si queda marcado como no disponible, el adaptador reproduce con `Tone.PolySynth`.
 - La UI no debe conocer si suena sampler o synth: solo envia eventos musicales ya resueltos.
 - El estado de desbloqueo de audio, los reintentos y los listeners de activacion movil viven dentro de la frontera del adaptador `audio`; los componentes UI solo piden playback o warm-up.
+
+### Checklist manual de audio en navegador real
+
+Ejecutar este chequeo en un navegador real, no solo en tests automatizados:
+
+1. Abrir la app con audio bloqueado por autoplay, hacer el primer gesto del usuario y confirmar que el audio se desbloquea; si falla o queda suspendido, repetir el gesto y verificar que el reintento sigue disponible.
+2. Probar con muestras cargadas y con muestras lentas/no disponibles: debe sonar sampler cuando este listo y `PolySynth` como fallback sin bloquear la UI.
+3. Mantener dos notas o grados solapados, soltar uno y confirmar que solo se libera ese input; el otro debe seguir sonando hasta su propia liberacion.
+4. Simular audio no disponible y confirmar que la app queda en modo visual usable, con feedback de error y sin romper la interaccion.
+5. Evaluar respuesta percibida al disparar grados, teclas y drag-across: el sonido debe sentirse inmediato para estudio, aunque la medicion fina de latencia siga fuera de alcance.
 
 ## UI y theming
 
