@@ -485,9 +485,15 @@ describe('GenChord study UI', () => {
     await selectCmajor(user)
     fireEvent.keyDown(window, { code: 'Digit1' })
     fireEvent.keyDown(window, { code: 'Digit2' })
+
+    expect(screen.getByRole('button', { name: /I1 \/ Q/i })).toHaveClass('is-active')
+    expect(screen.getByRole('button', { name: /ii2 \/ W/i })).toHaveClass('is-active')
+
     fireEvent.keyUp(window, { code: 'Digit1' })
 
     expect(releaseVoicing).toHaveBeenCalledWith('degree:shortcut:Digit1')
+    expect(screen.getByRole('button', { name: /I1 \/ Q/i })).not.toHaveClass('is-active')
+    expect(screen.getByRole('button', { name: /ii2 \/ W/i })).toHaveClass('is-active')
     expect(screen.getByRole('button', { name: 'D4 generator note pressed' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'F4 chord tone pressed' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'A4 chord tone pressed' })).toBeInTheDocument()
